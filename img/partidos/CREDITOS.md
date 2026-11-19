@@ -8,8 +8,10 @@ dos respectivos partidos; o uso aqui é apenas para identificar o partido em mat
 |---|---|---|---|
 | democrata | [Logomarca O Democrata 35.png](https://commons.wikimedia.org/wiki/File:Logomarca_O_Democrata_35.png) | Public domain | Democrata 35 |
 | novo | [Partido Novo logo (2023).svg](https://commons.wikimedia.org/wiki/File:Partido_Novo_logo_(2023).svg) | Public domain | Partido Novo |
+| pl | [Partido Liberal (Brazil) logo.svg](https://commons.wikimedia.org/wiki/File:Partido_Liberal_%28Brazil%29_logo.svg) | Public domain | Partido Liberal |
 | prd | [Partido Renovação Democrática logo.svg](https://commons.wikimedia.org/wiki/File:Partido_Renova%C3%A7%C3%A3o_Democr%C3%A1tica_logo.svg) | Public domain | Partido Renovação Democrática |
 | psd | [PSD Brazil logo.svg](https://commons.wikimedia.org/wiki/File:PSD_Brazil_logo.svg) | Public domain | Partido Social Democrático |
+| pstu | [Logo PSTU.png](https://commons.wikimedia.org/wiki/File:Logo_PSTU.png) | Attribution | PSTU |
 | rede | [Rede Sustentabilidade logo.svg](https://commons.wikimedia.org/wiki/File:Rede_Sustentabilidade_logo.svg) | Public domain | Rede Sustentabilidade |
 | solidariedade | [Logomarca do Partido Solidariedade.png](https://commons.wikimedia.org/wiki/File:Logomarca_do_Partido_Solidariedade.png) | Public domain | Solidariedade (Brasil) |
 

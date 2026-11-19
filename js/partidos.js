@@ -40,7 +40,7 @@ const PARTIDOS = [
 ];
 
 /* preenchido automaticamente: partidos com logo em img/partidos/ */
-const PARTIDOS_COM_LOGO = ['democrata', 'novo', 'prd', 'psd', 'rede', 'solidariedade'];
+const PARTIDOS_COM_LOGO = ['democrata', 'novo', 'pl', 'prd', 'psd', 'pstu', 'rede', 'solidariedade'];
 
 PARTIDOS.forEach(p => { p.logo = PARTIDOS_COM_LOGO.includes(p.id); });
 
