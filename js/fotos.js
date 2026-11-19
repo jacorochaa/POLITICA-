@@ -8,7 +8,10 @@
 const Fotos = (() => {
   // Endereço do Worker publicado na Cloudflare, sem barra no fim.
   // Ex.: 'https://colinha-fotos.seu-usuario.workers.dev'. Vazio = sem proxy.
-  const PROXY = '';
+  const PROXY_PUBLICO = '';
+  // No computador (localhost), o servidor local (scripts/servidor.mjs) faz o papel do proxy.
+  const local = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  const PROXY = PROXY_PUBLICO || (local ? 'proxy-fotos' : '');
 
   const cache = {}, indices = {};
 

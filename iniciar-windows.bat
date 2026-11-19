@@ -6,11 +6,11 @@ echo   Colinha ^& Moldura rodando em http://localhost:8000
 echo   Para encerrar, feche esta janela.
 echo.
 
-rem Usa o Python se estiver instalado de verdade (o atalho da Microsoft Store nao conta);
-rem se nao houver Python, usa o Node.
+rem Prefere o Node (o servidor dele tambem traz as fotos dos vereadores).
+rem Sem Node, usa o Python, se estiver instalado de verdade (o atalho da Microsoft Store nao conta).
+node -v >nul 2>nul && goto :node
 py -c "pass" >nul 2>nul && goto :py
 python -c "pass" >nul 2>nul && goto :python
-node -v >nul 2>nul && goto :node
 
 echo Nao encontrei Python nem Node neste computador.
 echo Instale um dos dois:

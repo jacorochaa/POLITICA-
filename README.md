@@ -46,7 +46,9 @@ Para ligar o proxy:
 2. Substitua o código dele pelo conteúdo de `cloudflare/fotos-worker.js` e publique.
 3. Copie o endereço do Worker (algo como `https://nome.sua-conta.workers.dev`) para a constante `PROXY` em `js/fotos.js`.
 
-Sem o proxy, os vereadores aparecem com uma silhueta no lugar da foto.
+No computador não precisa de nada disso: rodando o site com `node scripts/servidor.mjs` (ou pelos atalhos `iniciar-*`),
+o próprio servidor local faz o papel do proxy e as fotos dos vereadores aparecem. Publicado sem o proxy, os vereadores
+aparecem com uma silhueta no lugar da foto.
 
 ## Como publicar (grátis) no GitHub Pages
 
