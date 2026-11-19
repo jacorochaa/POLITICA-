@@ -63,6 +63,7 @@ const TSE = (() => {
       legal,
       ano: String(meta.ano),
       uf: cargo === 'presidente' ? 'BR' : ctx.uf,
+      ue: ctx.ue || '',
       res: o.res,
     };
   }
@@ -149,7 +150,7 @@ const TSE = (() => {
         lista = meta.layout === 'uf'
           ? ((await getJSON(`${BASE}/${meta.ano}/${uf}.json`))[ue] || [])
           : await getJSON(`${BASE}/${meta.ano}/${uf}/${ue}.json`);
-        ctx = { uf, cidade: $mun.selectedOptions[0].textContent };
+        ctx = { uf, ue, cidade: $mun.selectedOptions[0].textContent };
         pronto();
       } catch (e) { status('Não foi possível carregar os dados deste município.'); }
     }

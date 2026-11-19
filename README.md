@@ -31,6 +31,23 @@ e nome/número e preenche tudo: nome de urna, número, cargo, partido (cores e l
 - Rodar localmente: `python3 scripts/atualizar_candidatos.py 2026 2024`
 - Fotos: `node scripts/atualizar_fotos.mjs 2026` baixa as fotos oficiais e salva uma por arquivo em `data/fotos/<ano>/<UF>/<sq>.jpg` (cerca de 115 MB para 2026). O site não busca direto no TSE porque o servidor de lá manda o cabeçalho CORS duplicado e o navegador recusa.
 
+### Fotos das eleições municipais
+
+As fotos de 2024 passam de 10 GB, mais do que o GitHub Pages aceita (1 GB). Por isso:
+
+- **Prefeitos** ficam no site: `node scripts/fotos_municipais.mjs 2024 --prefeitos` baixa só essas fotos (lendo pedaços do zip do TSE) e
+  `powershell -ExecutionPolicy Bypass -File scripts\reduzir_fotos.ps1 data\fotos\2024` deixa cada uma com uns 6 KB.
+- **Vereadores** vêm por um proxy gratuito na Cloudflare (`cloudflare/fotos-worker.js`). `node scripts/fotos_municipais.mjs 2024 --indice`
+  grava em `data/fotos/2024/idx/` a posição de cada foto dentro do zip do TSE; o proxy só lê aquele pedaço e devolve a foto.
+
+Para ligar o proxy:
+
+1. Crie uma conta grátis na Cloudflare e, no painel, crie um Worker.
+2. Substitua o código dele pelo conteúdo de `cloudflare/fotos-worker.js` e publique.
+3. Copie o endereço do Worker (algo como `https://nome.sua-conta.workers.dev`) para a constante `PROXY` em `js/fotos.js`.
+
+Sem o proxy, os vereadores aparecem com uma silhueta no lugar da foto.
+
 ## Como publicar (grátis) no GitHub Pages
 
 1. No GitHub, abra **Settings → Pages**.

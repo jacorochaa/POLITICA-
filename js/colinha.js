@@ -38,7 +38,7 @@
   function pedirFoto(v) {
     if (!v || !v.sq || state.imgs[v.sq] !== undefined) return;
     state.imgs[v.sq] = null;
-    Fotos.get(v.ano, v.uf, v.sq).then(img => { state.imgs[v.sq] = img; render(); atualizarFotosLinhas(); });
+    Fotos.get(v.ano, v.uf, v.sq, v.ue).then(img => { state.imgs[v.sq] = img; render(); atualizarFotosLinhas(); });
   }
   function pedirLogo(pid) {
     if (!pid || state.logos[pid] !== undefined) return;
@@ -66,6 +66,7 @@
       legal: v('c-legal'),
       sq: state.sq || undefined,
       uf: state.uf || undefined,
+      ue: state.ue || undefined,
     };
   }
 
@@ -115,10 +116,10 @@
   }
 
   function carregarFotoCandidato(c) {
-    state.sq = c.sq; state.uf = c.uf;
+    state.sq = c.sq; state.uf = c.uf; state.ue = c.ue;
     if (state.fotoUser) return;
     state.foto = null;
-    Fotos.get(c.ano, c.uf, c.sq).then(img => {
+    Fotos.get(c.ano, c.uf, c.sq, c.ue).then(img => {
       if (state.sq === c.sq && !state.fotoUser) { state.foto = img; render(); }
     });
   }
@@ -479,7 +480,7 @@
     const v = { num };
     if (num.length === r.digitos && state.tse && state.tse.pronto()) {
       const c = state.tse.find(r.cargo, num);
-      if (c) Object.assign(v, { nome: c.urna, partido: c.partido, pid: c.pid, sq: c.sq, uf: c.uf, ano: c.ano });
+      if (c) Object.assign(v, { nome: c.urna, partido: c.partido, pid: c.pid, sq: c.sq, uf: c.uf, ue: c.ue, ano: c.ano });
       else v.naoAchou = true;
     } else if (!state.tse || !state.tse.pronto()) {
       const ant = e.votos[r.key];
@@ -492,13 +493,13 @@
   }
 
   function linhaHTML(r, v) {
-    const foto = v.sq ? `data/fotos/${v.ano}/${v.uf}/${v.sq}.jpg` : '';
+    const foto = v.sq && state.imgs[v.sq] ? state.imgs[v.sq].src : '';
     let info;
     if (v.nome) info = `<b>${esc(v.nome)}</b><small>${esc(v.partido || '')}</small>`;
     else if (v.naoAchou) info = '<small class="warn">Número não encontrado</small>';
     else info = `<small>${r.digitos} dígitos</small>`;
     return `
-      <div class="vr-photo">${foto ? `<img src="${foto}" alt="" onerror="this.remove()">` : ''}</div>
+      <div class="vr-photo">${foto ? `<img src="${foto}" alt="">` : ''}</div>
       <div class="vr-main">
         <span class="vr-label">${r.nome}</span>
         <input type="tel" inputmode="numeric" class="num" maxlength="${r.digitos}" aria-label="Número para ${r.nome}">
@@ -532,16 +533,26 @@
 
   function atualizarLinha(div, r, v) {
     const foto = U.$('.vr-photo', div);
-    const src = v.sq ? `data/fotos/${v.ano}/${v.uf}/${v.sq}.jpg` : '';
+    const src = v.sq && state.imgs[v.sq] ? state.imgs[v.sq].src : '';
     const img = U.$('img', foto);
     if (!src) foto.innerHTML = '';
-    else if (!img || !img.src.endsWith(src)) foto.innerHTML = `<img src="${src}" alt="" onerror="this.remove()">`;
+    else if (!img || img.src !== src) foto.innerHTML = `<img src="${src}" alt="">`;
     const info = U.$('.vr-info', div);
     if (v.nome) info.innerHTML = `<b>${esc(v.nome)}</b><small>${esc(v.partido || '')}</small>`;
     else if (v.naoAchou) info.innerHTML = '<small class="warn">Número não encontrado</small>';
     else info.innerHTML = `<small>${r.digitos} dígitos</small>`;
   }
-  function atualizarFotosLinhas() { /* as <img> carregam sozinhas; a arte usa state.imgs */ }
+  /** uma foto terminou de carregar (do site ou do proxy): atualiza as linhas que a usam */
+  function atualizarFotosLinhas() {
+    if (state.modo !== 'eleitor') return;
+    const e = state.eleitor;
+    U.$$('#e-rows .voter-row').forEach(div => {
+      const v = e.votos[div.dataset.key];
+      const img = v && v.sq && state.imgs[v.sq];
+      const box = U.$('.vr-photo', div);
+      if (img && !U.$('img', box)) box.innerHTML = `<img src="${img.src}" alt="">`;
+    });
+  }
 
   /** o painel do TSE mudou de eleição/estado/município */
   function aoMudarDados(api) {
@@ -573,7 +584,7 @@
     if (key === 'dep_distrital') e.df = true;
     if (key === 'dep_estadual') e.df = false;
     if (key === 'senador' && e.sen2 && e.votos.senador && e.votos.senador.num && e.votos.senador.num !== d.num) key = 'senador2';
-    const v = { num: d.num, nome: (d.urna || d.nome || '').toUpperCase(), partido: d.partido, pid: d.pid, sq: d.sq, uf: d.uf, ano: d.ano };
+    const v = { num: d.num, nome: (d.urna || d.nome || '').toUpperCase(), partido: d.partido, pid: d.pid, sq: d.sq, uf: d.uf, ue: d.ue, ano: d.ano };
     e.votos[key] = v;
     pedirFoto(v); pedirLogo(v.pid);
     salvarEleitor();
