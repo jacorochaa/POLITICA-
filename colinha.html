@@ -153,10 +153,17 @@
             <button data-f="stories">Stories</button>
             <button data-f="folha">Folha A4</button>
           </div>
+          <div class="temas" id="temas" role="group" aria-label="Tema da colinha">
+            <button type="button" data-tema="classico" aria-pressed="true"><span class="sw" style="background:#fff"></span>Clássico</button>
+            <button type="button" data-tema="urna" aria-pressed="false"><span class="sw" style="background:#e6e0d1"></span>Urna</button>
+            <button type="button" data-tema="partido" aria-pressed="false"><span class="sw" style="background:linear-gradient(135deg,#1f6feb 50%,#e8742c 50%)"></span>Partido</button>
+            <button type="button" data-tema="escuro" aria-pressed="false"><span class="sw" style="background:#121212"></span>Escuro</button>
+          </div>
         </div>
         <div class="preview-box"><canvas id="preview" width="1080" height="1350" aria-label="Prévia da colinha"></canvas></div>
         <div class="btns actions">
           <button class="btn" id="btn-download"><svg class="i"><use href="img/icons.svg#download"/></svg>Baixar</button>
+          <button class="btn ghost" id="btn-video"><svg class="i"><use href="img/icons.svg#play"/></svg>Vídeo</button>
           <button class="btn ghost" id="btn-share"><svg class="i"><use href="img/icons.svg#share"/></svg>Compartilhar</button>
           <button class="btn ghost" id="btn-print"><svg class="i"><use href="img/icons.svg#printer"/></svg>Imprimir</button>
           <button class="btn ghost only-edit hidden" id="btn-link"><svg class="i"><use href="img/icons.svg#link"/></svg>Copiar link</button>
@@ -171,6 +178,7 @@
   <script src="js/partidos.js"></script>
   <script src="js/tse.js"></script>
   <script src="js/fotos.js"></script>
+  <script src="js/video.js"></script>
   <script src="js/colinha.js"></script>
 </body>
 </html>

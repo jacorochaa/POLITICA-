@@ -544,3 +544,54 @@ footer.site { color: var(--muted); font-size: 13px; padding: 14px 16px; text-ali
 #tse-box .search { margin-bottom: 4px; }
 .tse-plain .field { margin-bottom: 12px; }
 #tse-box .tse-results { margin-top: 8px; }
+
+/* ==========================================================
+   Temas da colinha
+   ========================================================== */
+.preview-bar { row-gap: 12px; }
+.temas { display: flex; flex-wrap: wrap; gap: 6px; }
+.temas button {
+  display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 11px 0 7px;
+  border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--text-2);
+  font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.temas button:hover { border-color: var(--line-strong); }
+.temas button[aria-pressed="true"] { border-color: var(--ink); color: var(--text); box-shadow: inset 0 0 0 1px var(--ink); }
+.temas .sw { width: 18px; height: 18px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .18); }
+
+/* ==========================================================
+   Janela do vídeo
+   ========================================================== */
+.vmodal { position: fixed; inset: 0; z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(10, 10, 10, .72); }
+.vmodal.open { display: flex; }
+.vbox { display: flex; gap: 24px; align-items: center; background: var(--surface); border-radius: var(--r-lg); padding: 20px; max-width: 760px; width: 100%; max-height: calc(100vh - 32px); }
+.vcanvas { height: min(72vh, 640px); width: auto; aspect-ratio: 9 / 16; border-radius: 10px; background: #000; flex: none; }
+.vside { flex: 1; min-width: 0; }
+.vside h2 { margin: 0 0 8px; font-size: 20px; font-weight: 700; }
+.vstatus { margin: 0 0 12px; color: var(--muted); font-size: 14.5px; }
+.vbar { height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; margin-bottom: 18px; }
+.vprog { height: 100%; width: 0; background: var(--accent); transition: width .2s linear; }
+.vbtns { flex-direction: column; align-items: stretch; }
+@media (max-width: 640px) {
+  .vbox { flex-direction: column; padding: 14px; gap: 12px; }
+  .vcanvas { height: min(52vh, 520px); }
+  .vbtns { flex-direction: row; flex-wrap: wrap; }
+}
+
+/* ==========================================================
+   Animações
+   ========================================================== */
+@keyframes pop { 0% { transform: scale(.82); background: var(--accent-soft); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
+@keyframes achou { 0% { background: var(--accent-soft); } 100% { background: transparent; } }
+@keyframes entra { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+@keyframes sobe { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.digits .d.pop { animation: pop .28s ease-out; }
+.voter-row.achou { animation: achou 1.1s ease-out; border-radius: 8px; }
+.vr-photo img { animation: entra .35s ease-out; }
+.voter-row.achou .vr-info b { animation: sobe .35s ease-out; }
+.tse-item { animation: sobe .2s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn:disabled:hover { opacity: .4; }

@@ -278,15 +278,18 @@ U.digitInput = function (inp) {
   inp.parentNode.insertBefore(wrap, inp);
   wrap.append(row, inp);
 
+  let antes = null;   // valor anterior, para animar só o dígito novo
   const sync = () => {
     const n = Math.max(1, inp.maxLength > 0 ? inp.maxLength : (inp.value.length || 5));
     const v = inp.value;
     while (row.children.length < n) row.appendChild(document.createElement('span'));
     while (row.children.length > n) row.lastChild.remove();
+    const novo = antes !== null && v.length === antes.length + 1 && v.startsWith(antes) ? v.length - 1 : -1;
     [...row.children].forEach((d, i) => {
-      d.className = 'd' + (v[i] ? '' : ' empty') + (i === Math.min(v.length, n - 1) ? ' cur' : '');
+      d.className = 'd' + (v[i] ? '' : ' empty') + (i === Math.min(v.length, n - 1) ? ' cur' : '') + (i === novo ? ' pop' : '');
       d.textContent = v[i] || '';
     });
+    antes = v;
   };
   // atualiza também quando o código muda .value ou .maxLength diretamente
   const desc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');

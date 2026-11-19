@@ -81,6 +81,7 @@ body.app .actions {{ padding-left: max(12px, env(safe-area-inset-left, 0px)); pa
 <script src="js/partidos.js"></script>
 <script src="js/tse.js"></script>
 <script src="js/fotos.js"></script>
+<script src="js/video.js"></script>
 <script>
 (() => {{
   const SCRIPTS = {{ colinha: 'js/colinha.js', moldura: 'js/moldura.js', partidos: 'js/galeria.js' }};
