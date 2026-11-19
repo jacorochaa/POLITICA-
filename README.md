@@ -36,7 +36,18 @@ e nome/número e preenche tudo: nome de urna, número, cargo, partido (cores e l
 2. Em *Source*, escolha **Deploy from a branch**, selecione a branch e a pasta `/ (root)`.
 3. Salve. Em 1–2 minutos o site fica em `https://<usuario>.github.io/<repositorio>/`.
 
-Também funciona em Netlify, Vercel ou qualquer hospedagem de arquivos estáticos. Para testar localmente:
+Também funciona em Netlify, Vercel ou qualquer hospedagem de arquivos estáticos.
+
+## Rodar no computador
+
+Precisa do [Python](https://www.python.org/downloads/) instalado (no Windows, marque *Add python.exe to PATH*).
+
+- **Windows:** dois cliques em `iniciar-windows.bat`
+- **Mac:** dois cliques em `iniciar-mac-linux.command` (na 1ª vez: botão direito → Abrir)
+- **Linux:** `./iniciar-mac-linux.command`
+
+O navegador abre em http://localhost:8000. Não abra o `index.html` direto com dois cliques: o navegador
+bloqueia o download das artes e a busca do TSE fora de um servidor. Ou, no terminal, dentro da pasta:
 
 ```bash
 python3 -m http.server 8000
