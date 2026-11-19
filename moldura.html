@@ -4,55 +4,53 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Gerador de moldura · Colinha & Moldura</title>
-  <meta name="description" content="Coloque a moldura do seu candidato na sua foto de perfil ou stories.">
-  <meta name="theme-color" content="#fafafa">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2318181b'/%3E%3Cg fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 15V9.5h10V15'/%3E%3Cpath d='m13.5 12 1.8 1.6 3.2-3.1'/%3E%3Crect x='7' y='15' width='18' height='10' rx='2'/%3E%3C/g%3E%3C/svg%3E">
+  <meta name="description" content="Crie molduras de campanha para foto de perfil e stories. Envie o link e os apoiadores colocam a própria foto.">
+  <meta name="theme-color" content="#f7f7f5">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23121212'/%3E%3Cg fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 15V9.5h10V15'/%3E%3Cpath d='m13.5 12 1.8 1.6 3.2-3.1'/%3E%3Crect x='7' y='15' width='18' height='10' rx='2'/%3E%3C/g%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <script src="js/tema.js"></script>
 </head>
 <body class="has-actions">
-  <header class="topbar">
-    <div class="wrap">
-      <a class="brand" href="index.html"><span class="mark"><svg class="i"><use href="img/icons.svg#logo"/></svg></span><span class="txt">Colinha &amp; Moldura</span></a>
-      <nav class="nav">
-        <a href="colinha.html"><svg class="i i-sm"><use href="img/icons.svg#colinha"/></svg><span>Colinha</span></a>
-        <a href="moldura.html" class="active"><svg class="i i-sm"><use href="img/icons.svg#moldura"/></svg><span>Moldura</span></a>
-        <a href="partidos.html"><svg class="i i-sm"><use href="img/icons.svg#flag"/></svg><span>Partidos</span></a>
-      </nav>
-    </div>
-  </header>
+  <main class="app editor-app">
+    <aside class="side">
+      <header class="side-head">
+        <a class="brand" href="index.html"><span class="mark"><svg class="i"><use href="img/icons.svg#logo"/></svg></span><span class="txt">Colinha<span class="amp">&amp;</span>Moldura</span></a>
+        <nav class="nav" aria-label="Seções">
+          <a class="nb" href="index.html" title="Início" aria-label="Início"><svg class="i"><use href="img/icons.svg#home"/></svg></a>
+          <a class="nb" href="colinha.html" title="Colinha" aria-label="Colinha"><svg class="i"><use href="img/icons.svg#colinha"/></svg></a>
+          <a class="nb active" href="moldura.html" title="Moldura" aria-label="Moldura" aria-current="page"><svg class="i"><use href="img/icons.svg#moldura"/></svg></a>
+          <a class="nb" href="partidos.html" title="Partidos" aria-label="Partidos"><svg class="i"><use href="img/icons.svg#flag"/></svg></a>
+          <button class="nb" type="button" data-theme-toggle title="Tema claro/escuro" aria-label="Alternar tema claro ou escuro"><svg class="i only-light"><use href="img/icons.svg#moon"/></svg><svg class="i only-dark"><use href="img/icons.svg#sun"/></svg></button>
+        </nav>
+      </header>
 
-  <main class="wrap">
-    <div class="page-head only-edit">
-      <div>
-        <h1>Gerador de moldura</h1>
-        <p>Monte a moldura, copie o link e envie para os apoiadores.</p>
-      </div>
-    </div>
+      <div class="side-intro">
+        <div class="only-edit">
+          <h1 class="page-title">Moldura</h1>
+          <p class="lead">Monte a moldura e mande o link. Cada apoiador põe a própria foto.</p>
+        </div>
 
-    <div class="viewbar only-view">
-      <div class="who">
-        <div class="badge"><svg class="i i-lg"><use href="img/icons.svg#moldura"/></svg></div>
-        <div>
+        <!-- aparece para o apoiador que abriu o link -->
+        <div class="viewbar only-view">
           <h2 id="view-title">Moldura de apoio</h2>
           <ol class="steps-inline">
             <li><b>1</b>Escolha sua foto</li>
             <li><b>2</b>Arraste e ajuste</li>
             <li><b>3</b>Baixe e publique</li>
           </ol>
+          <a class="btn ghost sm" href="moldura.html" id="btn-create-own"><svg class="i i-sm"><use href="img/icons.svg#edit"/></svg>Criar minha moldura</a>
         </div>
-      </div>
-      <a class="btn ghost" href="moldura.html" id="btn-create-own"><svg class="i"><use href="img/icons.svg#edit"/></svg>Criar minha moldura</a>
-    </div>
 
-    <div class="editor" style="margin-top:16px">
-      <div>
+      </div>
+
+      <div class="side-body">
         <!-- ===== CONFIGURAÇÃO (candidato) ===== -->
         <form class="card only-edit" id="form-moldura" autocomplete="off" onsubmit="return false">
           <div class="card-section">
-            <h2 class="card-title"><span class="n">1</span>Modelo</h2>
+            <h2 class="card-title">Modelo</h2>
             <div class="templates" id="templates">
               <button type="button" class="tpl" data-t="partido"><svg><use href="img/icons.svg#tpl-partido"/></svg>Partido</button>
               <button type="button" class="tpl active" data-t="faixa"><svg><use href="img/icons.svg#tpl-faixa"/></svg>Faixa</button>
@@ -71,37 +69,33 @@
           </div>
 
           <div id="fields-box">
-            <div class="card-section tse" id="tse-box" style="border-radius:0;border-top:1px solid var(--line)"></div>
-            <p class="divider-label">ou preencha manualmente</p>
-            <div class="card-section" style="border-top:0">
-              <h2 class="card-title"><span class="n">2</span>Dados</h2>
+            <div class="card-section">
+              <h2 class="card-title">Candidato</h2>
+              <div id="tse-box" class="tse-inline"></div>
               <div class="field">
                 <label for="m-pid">Partido</label>
                 <select id="m-pid"></select>
-                <small>Aplica cores, logo e número do partido. <a href="partidos.html">Ver partidos</a></small>
               </div>
               <div class="field">
                 <label for="m-nome">Nome do candidato</label>
                 <input type="text" id="m-nome" maxlength="40" value="Maria da Saúde">
               </div>
-              <div class="row">
-                <div class="field">
-                  <label for="m-cargo">Cargo</label>
-                  <select id="m-cargo">
-                    <option value="vereador">Vereador(a)</option>
-                    <option value="prefeito">Prefeito(a)</option>
-                    <option value="dep_federal">Deputado(a) Federal</option>
-                    <option value="dep_estadual">Deputado(a) Estadual</option>
-                    <option value="dep_distrital">Deputado(a) Distrital</option>
-                    <option value="senador">Senador(a)</option>
-                    <option value="governador">Governador(a)</option>
-                    <option value="presidente">Presidente</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="m-num">Número</label>
-                  <input type="tel" inputmode="numeric" class="num" id="m-num" value="12345">
-                </div>
+              <div class="field">
+                <label for="m-cargo">Cargo</label>
+                <select id="m-cargo">
+                  <option value="vereador">Vereador(a)</option>
+                  <option value="prefeito">Prefeito(a)</option>
+                  <option value="dep_federal">Deputado(a) Federal</option>
+                  <option value="dep_estadual">Deputado(a) Estadual</option>
+                  <option value="dep_distrital">Deputado(a) Distrital</option>
+                  <option value="senador">Senador(a)</option>
+                  <option value="governador">Governador(a)</option>
+                  <option value="presidente">Presidente</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="m-num">Número na urna</label>
+                <input type="tel" inputmode="numeric" class="num" id="m-num" maxlength="5" value="12345">
               </div>
               <div class="row">
                 <div class="field">
@@ -114,14 +108,13 @@
                 </div>
               </div>
               <div class="field">
-                <label for="m-legal">Texto legal <span style="color:var(--muted);font-weight:400">(opcional)</span></label>
+                <label for="m-legal">Texto legal </label>
                 <input type="text" id="m-legal" maxlength="240" placeholder="Coligação/federação · CNPJ">
-                <small>Aparece em letra pequena no rodapé da moldura.</small>
               </div>
             </div>
 
             <div class="card-section">
-              <h2 class="card-title"><span class="n">3</span>Cores e logo</h2>
+              <h2 class="card-title">Cores e logo</h2>
               <div class="field">
                 <span class="label">Cores (principal e destaque)</span>
                 <div class="color-row">
@@ -145,10 +138,9 @@
             </div>
           </div>
 
-          <div class="card-section" style="padding-bottom:18px">
-            <h2 class="card-title"><span class="n">4</span>Compartilhar</h2>
+          <div class="card-section" style="padding-bottom:20px">
+            <h2 class="card-title">Compartilhar</h2>
             <button type="button" class="btn accent block" id="btn-link"><svg class="i"><use href="img/icons.svg#link"/></svg>Copiar link para apoiadores</button>
-            <p class="hint">Quem abrir o link vê só a moldura e envia a própria foto.</p>
           </div>
         </form>
 
@@ -172,8 +164,11 @@
         </div>
       </div>
 
-      <!-- ===== PRÉVIA ===== -->
-      <div class="preview-wrap">
+    </aside>
+
+    <!-- ===== PRÉVIA ===== -->
+    <section class="stage">
+      <div class="stage-inner preview-wrap">
         <div class="preview-bar">
           <div class="seg" id="formatos">
             <button data-f="perfil" class="active">Perfil 1:1</button>
@@ -189,7 +184,7 @@
           <button class="btn ghost" id="btn-share"><svg class="i"><use href="img/icons.svg#share"/></svg>Compartilhar</button>
         </div>
       </div>
-    </div>
+    </section>
   </main>
 
   <footer class="site">Sua foto não sai do seu aparelho: a montagem é feita no navegador.</footer>

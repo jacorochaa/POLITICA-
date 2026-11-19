@@ -8,17 +8,15 @@
 
   const cards = PARTIDOS.map(p => {
     const el = document.createElement('article');
-    el.className = 'party';
+    el.className = 'party-card';
     el.dataset.q = norm(`${p.sigla} ${p.nome} ${p.num}`);
     el.innerHTML = `
       <div class="logo"><canvas width="480" height="240"></canvas></div>
       <div class="body">
         <div class="head">
-          <div class="num" style="background:${p.cor};color:${U.textOn(p.cor)}">${p.num}</div>
+          ${U.digitsHTML(p.num, 'md')}
           <div><div class="sigla">${p.sigla}</div><div class="nome">${p.nome}</div></div>
         </div>
-        <div class="meta"><span class="c" style="background:${p.cor}"></span><span class="c" style="background:${p.cor2}"></span>
-          <span>${p.logo ? 'Logo oficial' : 'Selo gerado'}</span></div>
         <div class="acts">
           <a class="btn" href="moldura.html#p=${p.id}" data-tool="moldura" data-pid="${p.id}">${U.icon('moldura', 'i i-sm')}Moldura</a>
           <a class="btn ghost" href="colinha.html#p=${p.id}" data-tool="colinha" data-pid="${p.id}">${U.icon('colinha', 'i i-sm')}Colinha</a>

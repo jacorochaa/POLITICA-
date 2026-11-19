@@ -52,8 +52,9 @@ const TSE = (() => {
     else cid = 'Brasil';
     const legal = [o.agremiacao, o.cnpj ? 'CNPJ ' + cnpjFmt(o.cnpj) : ''].filter(Boolean).join(' · ');
     return {
-      sq: o.sq,
+      sq: String(o.sq),
       nome: titulo(o.nome),
+      urna: o.nome,
       num: String(o.num),
       cargo,
       pid: partido ? partido.id : '',
@@ -61,49 +62,67 @@ const TSE = (() => {
       cid,
       legal,
       ano: String(meta.ano),
+      uf: cargo === 'presidente' ? 'BR' : ctx.uf,
       res: o.res,
     };
   }
 
   /**
-   * Monta o painel de busca dentro de `el`.
-   * onSelect(candidato) é chamado com os dados prontos.
+   * Monta o painel (eleição, estado, município e busca) dentro de `el`.
+   * opts.onSelect(candidato): clique num resultado.
+   * opts.onData(api): a lista de candidaturas mudou (api.find, api.lugar, api.meta).
    */
-  function mount(el, onSelect) {
+  function mount(el, opts) {
+    if (typeof opts === 'function') opts = { onSelect: opts };
+    const onSelect = opts.onSelect || (() => {});
+    const onData = opts.onData || (() => {});
     const pref = U.store.get('tse-pref', {});
     el.innerHTML = `
-      <h2 class="card-title"><span class="n" style="background:var(--accent)">${U.icon('search', 'i i-sm')}</span>Puxar candidatura do TSE</h2>
       <div class="row">
         <div class="field"><label for="tse-eleicao">Eleição</label><select id="tse-eleicao"><option>Carregando…</option></select></div>
         <div class="field"><label for="tse-uf">Estado</label><select id="tse-uf"></select></div>
       </div>
       <div class="field hidden" id="tse-mun-box"><label for="tse-mun">Município</label><select id="tse-mun"></select></div>
-      <div class="field">
-        <label for="tse-q">Nome ou número</label>
-        <div class="tse-search">${U.icon('search', 'i')}<input type="text" id="tse-q" placeholder="Ex.: Maria ou 12345" autocomplete="off"></div>
-      </div>
-      <div class="tse-results" id="tse-results" role="listbox" aria-label="Candidaturas encontradas"></div>
-      <p class="hint tse-src" id="tse-src"></p>`;
+      <div class="search">${U.icon('search', 'i')}<input type="search" id="tse-q" placeholder="Buscar por nome ou número" autocomplete="off" aria-label="Buscar candidato por nome ou número"></div>
+      <div class="tse-results" id="tse-results" role="listbox" aria-label="Candidaturas encontradas"></div>`;
 
     const $e = U.$('#tse-eleicao', el), $uf = U.$('#tse-uf', el), $mun = U.$('#tse-mun', el);
-    const $munBox = U.$('#tse-mun-box', el), $q = U.$('#tse-q', el), $res = U.$('#tse-results', el), $src = U.$('#tse-src', el);
+    const $munBox = U.$('#tse-mun-box', el), $q = U.$('#tse-q', el), $res = U.$('#tse-results', el);
     let meta = null, lista = [], ctx = {};
 
-    const salvarPref = () => U.store.set('tse-pref', { ano: $e.value, uf: $uf.value, ue: $mun.value });
+    const api = {
+      get meta() { return meta; },
+      get ctx() { return ctx; },
+      pronto: () => lista.length > 0,
+      /** candidatura com esse cargo e número, ou null */
+      find(cargo, num) {
+        if (!meta || !lista.length || !num) return null;
+        const iC = meta.campos.indexOf('cargo'), iN = meta.campos.indexOf('num');
+        const r = lista.find(x => meta.cargos[x[iC]] === cargo && String(x[iN]) === String(num));
+        return r ? montar(r, meta, ctx) : null;
+      },
+      /** "Distrito Federal · DF" ou "Campinas · SP" */
+      lugar() {
+        if (!ctx.uf) return '';
+        return meta && meta.tipo === 'municipal' && ctx.cidade ? `${ctx.cidade} · ${ctx.uf}` : `${UFS[ctx.uf] || ctx.uf} · ${ctx.uf}`;
+      },
+    };
 
+    const salvarPref = () => U.store.set('tse-pref', { ano: $e.value, uf: $uf.value, ue: $mun.value });
     function status(msg) { $res.innerHTML = msg ? `<div class="tse-empty">${msg}</div>` : ''; }
+    function pronto() { buscar(); onData(api); }
 
     async function carregarEleicao() {
       meta = await getJSON(`${BASE}/${$e.value}/index.json`);
       const ufs = Object.keys(meta.indice).filter(u => u !== 'BR').sort();
-      $uf.innerHTML = '<option value="">Selecione</option>' + ufs.map(u => `<option value="${u}">${u} · ${UFS[u] || u}</option>`).join('');
+      $uf.innerHTML = '<option value="">Selecione</option>' + ufs.map(u => `<option value="${u}">${UFS[u] || u}</option>`).join('');
       if (pref.uf && ufs.includes(pref.uf)) $uf.value = pref.uf;
-      $src.textContent = `Fonte: TSE (Dados Abertos), ${meta.total.toLocaleString('pt-BR')} candidaturas. Dados de ${meta.geracao_tse}.`;
       await carregarUF();
     }
 
     async function carregarUF() {
       lista = [];
+      ctx = { uf: $uf.value };
       const uf = $uf.value;
       if (meta.tipo === 'municipal') {
         $munBox.classList.remove('hidden');
@@ -113,13 +132,11 @@ const TSE = (() => {
         await carregarMun();
       } else {
         $munBox.classList.add('hidden');
-        if (!uf) { status('Escolha o estado para buscar.'); return; }
-        status('Carregando candidaturas…');
+        if (!uf) { status(''); onData(api); return; }
         try {
           const [a, br] = await Promise.all([getJSON(`${BASE}/${meta.ano}/${uf}.json`), getJSON(`${BASE}/${meta.ano}/BR.json`).catch(() => [])]);
           lista = br.concat(a);
-          ctx = { uf };
-          buscar();
+          pronto();
         } catch (e) { status('Não foi possível carregar os dados deste estado.'); }
       }
     }
@@ -127,44 +144,44 @@ const TSE = (() => {
     async function carregarMun() {
       lista = [];
       const uf = $uf.value, ue = $mun.value;
-      if (!uf || !ue) { status(uf ? 'Escolha o município.' : 'Escolha o estado e o município.'); return; }
-      status('Carregando candidaturas…');
+      if (!uf || !ue) { status(''); onData(api); return; }
       try {
         lista = meta.layout === 'uf'
           ? ((await getJSON(`${BASE}/${meta.ano}/${uf}.json`))[ue] || [])
           : await getJSON(`${BASE}/${meta.ano}/${uf}/${ue}.json`);
         ctx = { uf, cidade: $mun.selectedOptions[0].textContent };
-        buscar();
+        pronto();
       } catch (e) { status('Não foi possível carregar os dados deste município.'); }
     }
 
     function buscar() {
-      if (!lista.length) return;
       const q = norm($q.value.trim());
+      if (!q) { status(''); return; }
+      if (!lista.length) { status(meta && meta.tipo === 'municipal' ? 'Escolha o estado e o município.' : 'Escolha o estado.'); return; }
       const iNome = meta.campos.indexOf('nome'), iNum = meta.campos.indexOf('num');
-      const achados = !q ? lista : lista.filter(r => norm(r[iNome]).includes(q) || String(r[iNum]).startsWith(q));
-      const mostrar = achados.slice(0, 60);
+      const achados = lista.filter(r => norm(r[iNome]).includes(q) || String(r[iNum]).startsWith(q));
+      const mostrar = achados.slice(0, 40);
       if (!achados.length) { status('Nenhuma candidatura encontrada.'); return; }
-      $res.innerHTML = mostrar.map((r, i) => {
+      $res.innerHTML = mostrar.map(r => {
         const c = montar(r, meta, ctx);
         const p = typeof Partidos !== 'undefined' ? Partidos.get(c.pid) : null;
         const cor = p ? p.cor : '#71717a';
         return `<button type="button" class="tse-item" data-i="${lista.indexOf(r)}" role="option">
-          <span class="tse-num" style="background:${cor};color:${U.textOn(cor)}">${esc(c.num)}</span>
-          <span class="tse-info"><b>${esc(c.nome)}</b><small>${esc(CARGOS[c.cargo] ? CARGOS[c.cargo].nome : '')} · ${esc(c.partido)}</small></span>
-          ${c.res === 'E' ? '<span class="tse-tag">Eleito(a)</span>' : ''}
+          ${U.digitsHTML(esc(c.num), 'sm')}
+          <span class="tse-info"><b>${esc(c.urna)}</b><small>${esc(CARGOS[c.cargo] ? CARGOS[c.cargo].nome : '')}</small></span>
+          <span class="tse-party" style="background:${cor};color:${U.textOn(cor)}">${esc(c.partido)}</span>
         </button>`;
       }).join('') + (achados.length > mostrar.length
-        ? `<div class="tse-empty">Mostrando ${mostrar.length} de ${achados.length.toLocaleString('pt-BR')}. Digite para filtrar.</div>` : '');
+        ? `<div class="tse-empty">Mais ${(achados.length - mostrar.length).toLocaleString('pt-BR')}. Digite mais para filtrar.</div>` : '');
     }
 
     $res.addEventListener('click', e => {
       const b = e.target.closest('.tse-item');
       if (!b) return;
-      U.$$('.tse-item', $res).forEach(x => x.classList.toggle('active', x === b));
       const c = montar(lista[+b.dataset.i], meta, ctx);
+      $q.value = '';
+      status('');
       onSelect(c);
-      U.toast(`${c.nome} · ${c.num} carregado(a) do TSE`);
     });
     $e.addEventListener('change', () => { salvarPref(); carregarEleicao().catch(() => status('Erro ao carregar a eleição.')); });
     $uf.addEventListener('change', () => { salvarPref(); carregarUF(); });
@@ -178,8 +195,10 @@ const TSE = (() => {
       return carregarEleicao();
     }).catch(() => {
       el.querySelector('.row').classList.add('hidden');
-      status('Dados do TSE indisponíveis. Abra o site por um servidor (veja o README) ou preencha manualmente.');
+      status('Dados do TSE indisponíveis. Abra o site por um servidor (veja o README).');
     });
+
+    return api;
   }
 
   return { mount, montar, UFS, RES };

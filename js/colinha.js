@@ -4,19 +4,47 @@
   const canvas = U.$('#preview');
   const ctx = canvas.getContext('2d');
   const formC = U.$('#form-candidato');
-  const BRAND = '#18181b';
-  const ACCENT = '#15803d';
+
+  /* tipografia da arte: Inter (limpa, legível), com reservas do sistema */
+  const FAM = 'Inter, "Segoe UI", Roboto, Arial, sans-serif';
+  const fnt = (w, s) => `${w} ${Math.round(s)}px ${FAM}`;
+  function fit(c, text, maxW, size, weight, min = 16) {
+    let s = size;
+    c.font = fnt(weight, s);
+    while (s > min && c.measureText(text).width > maxW) { s -= 1; c.font = fnt(weight, s); }
+    return s;
+  }
+  const INK = '#151515', GREY = '#5f5f5f', LINE = '#e6e6e6', SOFT = '#f4f4f4';
 
   const state = {
-    modo: 'candidato',          // 'candidato' | 'eleitor'
+    modo: 'eleitor',            // 'eleitor' | 'candidato'
     formato: 'feed',            // 'feed' | 'stories' | 'folha'
-    foto: null,
-    logoCustom: null,           // logo enviada pelo usuário
-    logoPartido: null,          // logo do site (img/partidos)
-    eleitor: U.store.get('colinha-eleitor', {
-      eleicao: 'municipal', ano: '2028', df: false, sen2: false, votos: {},
+    foto: null,                 // foto do candidato (modo candidato)
+    fotoUser: false,            // true se a foto veio do aparelho
+    sq: '',                     // candidatura do TSE carregada no modo candidato
+    logoCustom: null,
+    logoPartido: null,
+    imgs: {},                   // fotos do TSE já carregadas, por sq
+    logos: {},                  // logos de partido já carregadas, por id
+    tse: null,                  // api do painel do TSE
+    eleitor: U.store.get('colinha-eleitor2', {
+      eleicao: 'geral', ano: '2026', df: false, sen2: true, lugar: '', votos: {},
     }),
   };
+
+  /* =====================================================
+     Imagens (fotos do TSE e logos), carregadas sob demanda
+     ===================================================== */
+  function pedirFoto(v) {
+    if (!v || !v.sq || state.imgs[v.sq] !== undefined) return;
+    state.imgs[v.sq] = null;
+    Fotos.get(v.ano, v.uf, v.sq).then(img => { state.imgs[v.sq] = img; render(); atualizarFotosLinhas(); });
+  }
+  function pedirLogo(pid) {
+    if (!pid || state.logos[pid] !== undefined) return;
+    state.logos[pid] = null;
+    Partidos.loadLogo(pid).then(img => { state.logos[pid] = img; render(); });
+  }
 
   /* =====================================================
      Dados do candidato
@@ -36,6 +64,8 @@
       slogan: v('c-slogan'),
       cor: U.$('#c-cor').value || '#1d4ed8',
       legal: v('c-legal'),
+      sq: state.sq || undefined,
+      uf: state.uf || undefined,
     };
   }
 
@@ -44,11 +74,12 @@
     if (d.cargo && CARGOS[d.cargo]) set('c-cargo', d.cargo);
     if (d.pid && Partidos.get(d.pid)) { set('c-pid', d.pid); carregarLogoPartido(); }
     if (d.lg !== undefined) U.$('#c-showlogo').checked = !!d.lg;
+    atualizarDicaNumero();
     set('c-nome', d.nome); set('c-num', d.num); set('c-partido', d.partido);
     set('c-ano', d.ano); set('c-cid', d.cid); set('c-slogan', d.slogan);
     set('c-legal', d.legal);
     if (/^#[0-9a-f]{6}$/i.test(d.cor || '')) set('c-cor', d.cor);
-    atualizarDicaNumero();
+    if (d.sq && d.uf && d.ano) carregarFotoCandidato(d);
   }
 
   function atualizarDicaNumero() {
@@ -59,10 +90,8 @@
     U.$('#c-num-hint').textContent = `${cargo.digitos} dígitos`;
   }
 
-  /* ---------- partido ---------- */
   function partidoAtual() { return Partidos.get(U.$('#c-pid').value); }
 
-  /** logo a desenhar (enviada > do site > selo com sigla) ou null se desligada */
   function logoInfo(d) {
     const p = Partidos.get(d.pid);
     if (!d.lg || (!p && !state.logoCustom)) return null;
@@ -85,174 +114,169 @@
     carregarLogoPartido();
   }
 
+  function carregarFotoCandidato(c) {
+    state.sq = c.sq; state.uf = c.uf;
+    if (state.fotoUser) return;
+    state.foto = null;
+    Fotos.get(c.ano, c.uf, c.sq).then(img => {
+      if (state.sq === c.sq && !state.fotoUser) { state.foto = img; render(); }
+    });
+  }
+
   /* =====================================================
-     Desenho — colinha do candidato (feed / stories)
+     Desenho — peças comuns
+     ===================================================== */
+  function caixinhas(c, num, n, cx, y, bw, bh, gap) {
+    const total = n * bw + (n - 1) * gap;
+    let x = cx - total / 2;
+    const ch = String(num || '').split('');
+    for (let i = 0; i < n; i++) {
+      U.roundRect(c, x, y, bw, bh, bw * 0.2);
+      c.fillStyle = SOFT; c.fill();
+      c.lineWidth = Math.max(2.5, bw * 0.045); c.strokeStyle = '#2b2b2b'; c.stroke();
+      if (ch[i]) {
+        c.fillStyle = INK; c.font = fnt(600, bh * 0.62);
+        c.textAlign = 'center'; c.textBaseline = 'middle';
+        c.fillText(ch[i], x + bw / 2, y + bh / 2 + bh * 0.03);
+      }
+      x += bw + gap;
+    }
+  }
+
+  /** foto em retângulo arredondado; sem foto, silhueta cinza */
+  function retrato(c, img, x, y, w, h, r) {
+    c.save();
+    U.roundRect(c, x, y, w, h, r);
+    c.clip();
+    if (img) {
+      U.drawCover(c, img, x, y, w, h);
+    } else {
+      c.fillStyle = '#eeeeee'; c.fillRect(x, y, w, h);
+      c.fillStyle = '#d4d4d4';
+      c.beginPath(); c.arc(x + w / 2, y + h * 0.4, w * 0.2, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.ellipse(x + w / 2, y + h * 1.02, w * 0.42, h * 0.36, 0, Math.PI, 0); c.fill();
+    }
+    c.restore();
+  }
+
+  /** logo do partido numa caixa branca com borda leve + sigla embaixo */
+  function seloPartido(c, img, p, sigla, x, y, s) {
+    if (img || p) {
+      U.roundRect(c, x, y, s, s, s * 0.2);
+      c.fillStyle = '#fff'; c.fill();
+      c.lineWidth = 2; c.strokeStyle = LINE; c.stroke();
+      Partidos.draw(c, img, p, x + s * 0.1, y + s * 0.1, s * 0.8, s * 0.8);
+    }
+    if (sigla) {
+      c.fillStyle = GREY; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+      fit(c, sigla, s + 40, 20, 700, 12);
+      c.fillText(sigla, x + s / 2, y + s + 30);
+    }
+  }
+
+  function espacado(c, text, x, y, size, weight, color, sp) {
+    c.fillStyle = color; c.font = fnt(weight, size);
+    U.setSpacing(c, sp);
+    c.fillText(text, x, y);
+    U.setSpacing(c, 0);
+  }
+
+  /* =====================================================
+     Colinha do candidato (imagem / stories)
      ===================================================== */
   function drawCandidato(c, W, H, d) {
     const cargo = CARGOS[d.cargo];
     const cor = d.cor;
-    const onCor = U.textOn(cor);
-    const corTxt = onCor === '#111827' ? U.shade(cor, -0.55) : cor;
+    const corTxt = U.textOn(cor) === '#111827' ? U.shade(cor, -0.55) : cor;
     const tall = H / W > 1.5;
-
-    // fundo
-    const g = c.createLinearGradient(0, 0, W * 0.4, H);
-    g.addColorStop(0, U.shade(cor, 0.06));
-    g.addColorStop(1, U.shade(cor, -0.42));
-    c.fillStyle = g;
-    c.fillRect(0, 0, W, H);
-    c.save();
-    c.globalAlpha = 0.09;
-    c.fillStyle = '#fff';
-    c.beginPath(); c.arc(W * 0.96, H * 0.04, W * 0.36, 0, Math.PI * 2); c.fill();
-    c.beginPath(); c.arc(W * 0.02, H * 0.98, W * 0.3, 0, Math.PI * 2); c.fill();
-    c.restore();
-
-    // cabeçalho
-    const top = tall ? 150 : 70;
-    c.textAlign = 'center';
-    c.textBaseline = 'alphabetic';
-    c.fillStyle = onCor;
-    U.setSpacing(c, 10);
-    c.font = U.font(900, tall ? 58 : 50);
-    c.fillText('COLINHA', W / 2, top + 50);
-    U.setSpacing(c, 0);
-    c.globalAlpha = 0.9;
-    U.fitFont(c, `Eleições ${d.ano || ''}${d.cid ? ' · ' + d.cid : ''}`, W - 160, 30, 600);
-    c.fillText(`Eleições ${d.ano || ''}${d.cid ? ' · ' + d.cid : ''}`, W / 2, top + 96);
-    c.globalAlpha = 1;
-
-    // cartão branco
-    const footerH = tall ? 300 : 170;
-    const cardX = 60, cardW = W - 120;
-    const cardY = top + 135;
-    const cardH = H - cardY - footerH;
-    c.save();
-    c.shadowColor = 'rgba(0,0,0,.28)';
-    c.shadowBlur = 40;
-    c.shadowOffsetY = 16;
-    U.roundRect(c, cardX, cardY, cardW, cardH, 46);
-    c.fillStyle = '#fff';
-    c.fill();
-    c.restore();
-
-    // medidas dos blocos
-    const inner = cardW - 100;
-    const n = cargo.digitos;
-    const gap = n >= 5 ? 16 : 22;
-    const boxW = Math.min(tall ? 170 : 150, (inner - gap * (n - 1)) / n);
-    const boxH = boxW * 1.3;
-    const photoD = state.foto ? (tall ? 360 : 250) : 0;
-    const nome = d.nome || 'Nome do candidato';
-    const nameSize = U.fitFont(c, nome, inner, tall ? 104 : 88, 900, 40);
-
-    const H_photo = photoD ? photoD + 40 : 0;
-    const H_name = nameSize * 1.02;
-    const H_cargo = 64;
-    const H_label = 74;
-    const H_boxes = boxH + 40;
-    const H_conf = 72 + (d.partido ? 44 : 0);
-    const logo = logoInfo(d);
-    const logoH = logo ? (tall ? 130 : 96) : 0;
-    const H_part = (d.partido ? 46 : 0) + (logo ? logoH + 20 : 0);
-    const total = H_photo + H_name + H_cargo + H_label + H_boxes + H_conf + H_part;
-    let y = cardY + Math.max(40, (cardH - total) / 2);
     const cx = W / 2;
 
-    // foto
-    if (photoD) {
-      c.save();
-      c.beginPath();
-      c.arc(cx, y + photoD / 2, photoD / 2, 0, Math.PI * 2);
-      c.clip();
-      U.drawCover(c, state.foto, cx - photoD / 2, y, photoD, photoD);
-      c.restore();
-      c.lineWidth = 12;
-      c.strokeStyle = cor;
-      c.beginPath();
-      c.arc(cx, y + photoD / 2, photoD / 2, 0, Math.PI * 2);
-      c.stroke();
-      y += H_photo;
-    }
-
-    // nome
-    c.fillStyle = '#111827';
-    c.textAlign = 'center';
-    c.textBaseline = 'alphabetic';
-    c.font = U.font(900, nameSize);
-    c.fillText(nome, cx, y + nameSize * 0.82);
-    y += H_name;
-
-    // cargo
-    c.fillStyle = corTxt;
-    U.setSpacing(c, 4);
-    U.fitFont(c, cargo.nome.toUpperCase(), inner, 38, 800);
-    c.fillText(cargo.nome.toUpperCase(), cx, y + 42);
-    U.setSpacing(c, 0);
-    y += H_cargo;
-
-    // instrução
-    c.fillStyle = '#6b7280';
-    c.font = U.font(600, 32);
-    c.fillText('Na urna, digite:', cx, y + 46);
-    y += H_label;
-
-    // caixinhas
-    U.digitBoxes(c, d.num, n, cx, y, boxW, boxH, gap, { bg: '#f9fafb', border: '#111827', color: '#111827' });
-    y += H_boxes;
-
-    // e aperte CONFIRMA
-    c.font = U.font(600, 30);
-    const pre = 'e aperte';
-    const preW = c.measureText(pre).width;
-    const btnW = 270, btnH = 66, sp = 18;
-    const startX = cx - (preW + sp + btnW) / 2;
-    c.textAlign = 'left';
-    c.textBaseline = 'middle';
-    c.fillStyle = '#6b7280';
-    c.fillText(pre, startX, y + btnH / 2);
-    U.roundRect(c, startX + preW + sp, y, btnW, btnH, 14);
-    c.fillStyle = '#16a34a';
-    c.fill();
     c.fillStyle = '#fff';
-    c.font = U.font(900, 30);
-    c.textAlign = 'center';
-    c.fillText('CONFIRMA', startX + preW + sp + btnW / 2, y + btnH / 2 + 2);
-    y += H_conf;
+    c.fillRect(0, 0, W, H);
+    c.fillStyle = cor;
+    c.fillRect(0, 0, W, 18);
 
-    // partido (logo + sigla)
+    // cabeçalho
+    c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+    const cab = [`ELEIÇÕES ${d.ano || ''}`, d.cid ? d.cid.toUpperCase() : ''].filter(Boolean).join(' · ');
+    espacado(c, cab, cx, tall ? 150 : 104, 24, 600, GREY, 4);
+
+    // blocos
+    const n = cargo.digitos;
+    const gap = n >= 5 ? 14 : 18;
+    const bw = Math.min(tall ? 150 : 132, (W - 200 - gap * (n - 1)) / n);
+    const bh = bw * 1.18;
+    const ph = state.foto ? (tall ? 560 : 400) : 0;
+    const pw = ph * 0.75;
+    const nome = (d.nome || 'Nome do candidato').toUpperCase();
+    const logo = logoInfo(d);
+    const logoS = logo ? (tall ? 132 : 112) : 0;
+
+    const hFoto = ph ? ph + 56 : 0;
+    const hCargo = 54;
+    const hBoxes = bh + 44;
+    const hNome = 84;
+    const hConf = 96;
+    const hPart = logo || d.partido ? (logoS ? logoS + 50 : 40) : 0;
+    const hSlogan = d.slogan ? 80 : 0;
+    const topo = tall ? 220 : 150;
+    const base = H - (d.legal ? (tall ? 170 : 120) : (tall ? 120 : 70));
+    const total = hFoto + hCargo + hBoxes + hNome + hConf + hPart + hSlogan;
+    let y = topo + Math.max(0, (base - topo - total) / 2);
+
+    if (ph) { retrato(c, state.foto, cx - pw / 2, y, pw, ph, 28); y += hFoto; }
+
+    c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+    espacado(c, cargo.nome.toUpperCase(), cx, y + 34, 32, 700, corTxt, 5);
+    y += hCargo;
+
+    caixinhas(c, d.num, n, cx, y, bw, bh, gap);
+    y += hBoxes;
+
+    c.fillStyle = INK; c.textAlign = 'center';
+    fit(c, nome, W - 160, 64, 800, 30);
+    c.fillText(nome, cx, y + 56);
+    y += hNome;
+
+    // "digite e aperte CONFIRMA"
+    c.font = fnt(500, 26);
+    const pre = 'Na urna, digite e aperte';
+    const preW = c.measureText(pre).width;
+    const btnW = 196, btnH = 52, sp = 14;
+    const sx = cx - (preW + sp + btnW) / 2;
+    c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillStyle = GREY;
+    c.fillText(pre, sx, y + btnH / 2);
+    U.roundRect(c, sx + preW + sp, y, btnW, btnH, 10);
+    c.fillStyle = '#1f8f4e'; c.fill();
+    c.fillStyle = '#fff'; c.font = fnt(800, 22); c.textAlign = 'center';
+    c.fillText('CONFIRMA', sx + preW + sp + btnW / 2, y + btnH / 2 + 1);
+    y += hConf;
+
     if (logo) {
-      const lw = logo.img ? Math.min(inner, logoH * Math.max(1, logo.img.width / logo.img.height)) : logoH;
-      Partidos.draw(c, logo.img, logo.p, cx - lw / 2, y - 14, lw, logoH);
-      y += logoH + 20;
-    }
-    if (d.partido) {
-      c.textAlign = 'center';
-      c.textBaseline = 'alphabetic';
-      c.fillStyle = '#374151';
-      U.fitFont(c, d.partido, inner, 34, 800);
-      c.fillText(d.partido, cx, y + 10);
+      seloPartido(c, logo.img, logo.p, d.partido, cx - logoS / 2, y, logoS);
+      y += hPart;
+    } else if (d.partido) {
+      c.fillStyle = GREY; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+      fit(c, d.partido, W - 200, 30, 700);
+      c.fillText(d.partido, cx, y + 24);
+      y += hPart;
     }
 
-    // rodapé
-    c.textAlign = 'center';
-    c.textBaseline = 'alphabetic';
-    c.fillStyle = onCor;
-    const fy = cardY + cardH;
     if (d.slogan) {
-      U.fitFont(c, d.slogan, W - 140, tall ? 50 : 42, 800);
-      c.fillText(d.slogan, cx, fy + (tall ? 110 : 78));
+      c.fillStyle = corTxt; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+      fit(c, d.slogan, W - 160, 40, 700, 22);
+      c.fillText(d.slogan, cx, y + 44);
     }
+
     if (d.legal) {
-      c.globalAlpha = 0.85;
-      drawWrapped(c, d.legal, cx, H - (tall ? 64 : 40), W - 120, d.legal.length > 160 ? 19 : 22, 500, 3);
-      c.globalAlpha = 1;
+      c.fillStyle = '#8a8a8a'; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+      drawWrapped(c, d.legal, cx, H - (tall ? 80 : 46), W - 140, d.legal.length > 160 ? 18 : 21, 500, 3);
     }
   }
 
   /** texto pequeno em até `maxLines` linhas, ancorado pela última linha em `yBottom` */
   function drawWrapped(c, text, cx, yBottom, maxW, size, weight, maxLines) {
-    c.font = U.font(weight, size);
+    c.font = fnt(weight, size);
     const words = text.split(/\s+/);
     const lines = [];
     let line = '';
@@ -274,10 +298,14 @@
     for (let r = 0; r < rows; r++) {
       for (let k = 0; k < cols; k++) drawMini(c, m + k * cw, m + r * ch, cw, ch, d);
     }
-    // linhas de corte
+    cortes(c, W, H, m, cols, rows);
+  }
+
+  function cortes(c, W, H, m, cols, rows) {
+    const cw = (W - m * 2) / cols, ch = (H - m * 2) / rows;
     c.save();
     c.setLineDash([18, 14]);
-    c.strokeStyle = '#9ca3af';
+    c.strokeStyle = '#b5b5b5';
     c.lineWidth = 3;
     for (let k = 0; k <= cols; k++) { c.beginPath(); c.moveTo(m + k * cw, m - 30); c.lineTo(m + k * cw, H - m + 30); c.stroke(); }
     for (let r = 0; r <= rows; r++) { c.beginPath(); c.moveTo(m - 30, m + r * ch); c.lineTo(W - m + 30, m + r * ch); c.stroke(); }
@@ -286,154 +314,101 @@
 
   function drawMini(c, x, y, w, h, d) {
     const cargo = CARGOS[d.cargo];
-    const cor = d.cor;
-    const corTxt = U.textOn(cor) === '#111827' ? U.shade(cor, -0.55) : cor;
-    const pad = 70;
-    c.fillStyle = cor;
-    c.fillRect(x, y, 34, h);
-    const cx = x + 17 + w / 2;
-    const inner = w - pad * 2;
-    c.textAlign = 'center';
-    c.textBaseline = 'alphabetic';
-
-    c.fillStyle = '#6b7280';
-    U.setSpacing(c, 6);
-    c.font = U.font(800, 30);
-    U.fitFont(c, `COLINHA · ELEIÇÕES ${d.ano || ''}`, inner - 300, 30, 800);
-    c.fillText(`COLINHA · ELEIÇÕES ${d.ano || ''}`, cx, y + 70);
-    U.setSpacing(c, 0);
-
-    c.fillStyle = '#111827';
-    const ns = U.fitFont(c, d.nome || 'Nome do candidato', inner, 78, 900, 34);
-    c.fillText(d.nome || 'Nome do candidato', cx, y + 90 + ns * 0.9);
-
-    c.fillStyle = corTxt;
-    U.fitFont(c, cargo.nome.toUpperCase() + (d.partido ? ' · ' + d.partido : ''), inner, 38, 800);
-    c.fillText(cargo.nome.toUpperCase() + (d.partido ? ' · ' + d.partido : ''), cx, y + 236);
-
-    const n = cargo.digitos, gap = 18;
-    const bw = Math.min(118, (inner - gap * (n - 1)) / n), bh = bw * 1.25;
-    U.digitBoxes(c, d.num, n, cx, y + 270, bw, bh, gap, { bg: '#fff', border: '#111827' });
-
-    c.fillStyle = '#374151';
-    c.font = U.font(700, 32);
-    c.fillText('Digite o número e aperte CONFIRMA', cx, y + 270 + bh + 62);
-
+    const pad = 60;
+    const fotoW = state.foto ? 200 : 0, fotoH = fotoW * 1.33;
+    if (fotoW) retrato(c, state.foto, x + pad, y + (h - fotoH) / 2, fotoW, fotoH, 22);
     const logo = logoInfo(d);
-    if (logo) Partidos.draw(c, logo.img, logo.p, x + w - 150, y + 24, 120, 90);
+    const logoS = logo ? 150 : 0;
+    if (logo) seloPartido(c, logo.img, logo.p, d.partido, x + w - pad - logoS, y + (h - logoS) / 2 - 20, logoS);
+    const l = x + pad + (fotoW ? fotoW + 40 : 0);
+    const r = x + w - pad - (logoS ? logoS + 40 : 0);
+    const cx = (l + r) / 2, inner = r - l;
 
+    c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+    espacado(c, cargo.nome.toUpperCase(), cx, y + 120, 30, 700, GREY, 4);
+    const n = cargo.digitos, gap = 14;
+    const bw = Math.min(104, (inner - gap * (n - 1)) / n), bh = bw * 1.18;
+    caixinhas(c, d.num, n, cx, y + 150, bw, bh, gap);
+    c.fillStyle = INK; c.textAlign = 'center';
+    fit(c, (d.nome || 'Nome do candidato').toUpperCase(), inner, 50, 800, 24);
+    c.fillText((d.nome || 'Nome do candidato').toUpperCase(), cx, y + 150 + bh + 70);
     if (d.legal) {
-      c.fillStyle = '#6b7280';
-      drawWrapped(c, d.legal, cx, y + h - 26, inner, d.legal.length > 120 ? 17 : 20, 500, 2);
+      c.fillStyle = '#8a8a8a';
+      drawWrapped(c, d.legal, x + w / 2, y + h - 26, w - pad * 2, d.legal.length > 120 ? 17 : 20, 500, 2);
     }
   }
 
   /* =====================================================
-     Desenho — colinha do eleitor
+     Colinha do eleitor (lista na ordem da urna)
      ===================================================== */
   function linhasEleitor() {
     const e = state.eleitor;
     if (e.eleicao === 'municipal') {
       return [
-        { key: 'vereador', ...CARGOS.vereador },
-        { key: 'prefeito', ...CARGOS.prefeito },
+        { key: 'vereador', cargo: 'vereador', ...CARGOS.vereador },
+        { key: 'prefeito', cargo: 'prefeito', ...CARGOS.prefeito },
       ];
     }
     const L = [
-      { key: 'dep_federal', ...CARGOS.dep_federal },
-      e.df ? { key: 'dep_distrital', ...CARGOS.dep_distrital } : { key: 'dep_estadual', ...CARGOS.dep_estadual },
-      { key: 'senador', ...CARGOS.senador, nome: e.sen2 ? '1º Senador(a)' : 'Senador(a)' },
+      { key: 'dep_federal', cargo: 'dep_federal', ...CARGOS.dep_federal },
+      e.df ? { key: 'dep_distrital', cargo: 'dep_distrital', ...CARGOS.dep_distrital }
+        : { key: 'dep_estadual', cargo: 'dep_estadual', ...CARGOS.dep_estadual },
+      { key: 'senador', cargo: 'senador', ...CARGOS.senador, nome: e.sen2 ? 'Senador(a) · 1ª vaga' : 'Senador(a)' },
     ];
-    if (e.sen2) L.push({ key: 'senador2', ...CARGOS.senador, nome: '2º Senador(a)' });
-    L.push({ key: 'governador', ...CARGOS.governador });
-    L.push({ key: 'presidente', ...CARGOS.presidente });
+    if (e.sen2) L.push({ key: 'senador2', cargo: 'senador', ...CARGOS.senador, nome: 'Senador(a) · 2ª vaga' });
+    L.push({ key: 'governador', cargo: 'governador', ...CARGOS.governador });
+    L.push({ key: 'presidente', cargo: 'presidente', ...CARGOS.presidente });
     return L;
   }
 
-  function alturaEleitor() {
-    return 300 + linhasEleitor().length * 176 + 190;
-  }
+  const E = { head: 210, row: 180, foot: 120 };
+  function alturaEleitor() { return E.head + linhasEleitor().length * E.row + E.foot; }
 
   function drawEleitor(c, W, H) {
     const e = state.eleitor;
     const rows = linhasEleitor();
     c.fillStyle = '#fff';
     c.fillRect(0, 0, W, H);
+    const L = 72, R = W - 72, cx = W / 2;
 
-    const tall = H / W > 1.5;
-    const headH = tall ? 420 : 260;
-    const g = c.createLinearGradient(0, 0, W, headH);
-    g.addColorStop(0, BRAND);
-    g.addColorStop(1, '#27272a');
-    c.fillStyle = g;
-    c.fillRect(0, 0, W, headH);
+    // cabeçalho: lugar e eleição
+    c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+    espacado(c, `COLINHA · ELEIÇÕES ${e.ano || ''}`, cx, 82, 22, 600, GREY, 5);
+    c.fillStyle = INK;
+    fit(c, e.lugar || 'Minha colinha', W - 200, 46, 800, 26);
+    c.fillText(e.lugar || 'Minha colinha', cx, 142);
 
-    c.fillStyle = '#fff';
-    c.textAlign = 'center';
-    c.textBaseline = 'alphabetic';
-    U.setSpacing(c, 8);
-    c.font = U.font(900, 66);
-    c.fillText('MINHA COLINHA', W / 2, headH - 130);
-    U.setSpacing(c, 0);
-    c.font = U.font(600, 30);
-    c.globalAlpha = 0.92;
-    c.fillText(`Eleições ${e.ano || ''} · na ordem da urna`, W / 2, headH - 75);
-    c.globalAlpha = 1;
-
-    const rowH = 176;
-    const footH = 190;
-    const avail = H - headH - footH;
-    let y = headH + Math.max(40, (avail - rows.length * rowH) / 2);
-
+    let y = E.head - 20;
     rows.forEach((r, i) => {
       const v = e.votos[r.key] || {};
-      const x = 50, w = W - 100, h = rowH - 26;
-      U.roundRect(c, x, y, w, h, 26);
-      c.fillStyle = '#f3f4f8';
-      c.fill();
-
-      // número da etapa
-      c.fillStyle = ACCENT;
-      c.beginPath();
-      c.arc(x + 58, y + h / 2, 30, 0, Math.PI * 2);
-      c.fill();
-      c.fillStyle = '#fff';
-      c.font = U.font(900, 30);
-      c.textAlign = 'center';
-      c.textBaseline = 'middle';
-      c.fillText(String(i + 1), x + 58, y + h / 2 + 1);
-
-      // caixinhas (direita)
-      const bw = 74, gap = 10, bh = 96;
-      const boxesW = r.digitos * bw + (r.digitos - 1) * gap;
-      const bcx = x + w - 30 - boxesW / 2;
-      U.digitBoxes(c, v.num, r.digitos, bcx, y + (h - bh) / 2, bw, bh, gap, { bg: '#fff', border: '#111827' });
-
-      // textos (esquerda)
-      const tx = x + 110;
-      const tw = (bcx - boxesW / 2) - tx - 24;
-      c.textAlign = 'left';
-      c.textBaseline = 'alphabetic';
-      c.fillStyle = '#111827';
-      U.fitFont(c, r.nome, tw, 38, 800, 22);
-      c.fillText(r.nome, tx, y + h / 2 - 4);
-      c.fillStyle = v.nome ? '#4b5563' : '#9ca3af';
-      const sub = v.nome || `${r.digitos} dígitos`;
-      U.fitFont(c, sub, tw, 28, 600, 18);
-      c.fillText(sub, tx, y + h / 2 + 38);
-
-      y += rowH;
+      const top = y + 14;
+      // foto
+      retrato(c, v.sq ? state.imgs[v.sq] : null, L, top, 112, 150, 18);
+      // partido
+      const p = Partidos.get(v.pid);
+      if (v.num && (p || v.partido)) seloPartido(c, p ? state.logos[p.id] : null, p, v.partido, R - 96, top + 14, 96);
+      // cargo, número, nome
+      c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+      espacado(c, r.nome.toUpperCase(), cx, top + 22, 22, 600, GREY, 4);
+      const n = r.digitos, gap = 9, bw = 58, bh = 68;
+      caixinhas(c, v.num, n, cx, top + 38, bw, bh, gap);
+      if (v.nome) {
+        c.fillStyle = INK;
+        fit(c, v.nome.toUpperCase(), R - L - 2 * 150, 30, 700, 16);
+        c.fillText(v.nome.toUpperCase(), cx, top + 142);
+      }
+      if (i < rows.length - 1) {
+        c.fillStyle = LINE;
+        c.fillRect(L, y + E.row - 1, R - L, 2);
+      }
+      y += E.row;
     });
 
-    // rodapé
-    c.textAlign = 'center';
-    c.textBaseline = 'alphabetic';
-    c.fillStyle = '#111827';
-    c.font = U.font(800, 32);
-    c.fillText('Digite o número e aperte CONFIRMA', W / 2, H - 110);
-    c.fillStyle = '#6b7280';
-    c.font = U.font(600, 24);
-    c.fillText('Celular não é permitido na cabine: leve esta colinha impressa.', W / 2, H - 62);
+    c.fillStyle = LINE;
+    c.fillRect(L, H - E.foot + 10, R - L, 2);
+    c.fillStyle = GREY; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+    c.font = fnt(500, 24);
+    c.fillText('Digite o número e aperte CONFIRMA. Celular não entra na cabine.', cx, H - 48);
   }
 
   function drawFolhaEleitor(c, W, H) {
@@ -447,17 +422,9 @@
     const s = Math.min((cw - 60) / off.width, (ch - 60) / off.height);
     const dw = off.width * s, dh = off.height * s;
     for (let r = 0; r < 2; r++) {
-      for (let k = 0; k < 2; k++) {
-        c.drawImage(off, m + k * cw + (cw - dw) / 2, m + r * ch + (ch - dh) / 2, dw, dh);
-      }
+      for (let k = 0; k < 2; k++) c.drawImage(off, m + k * cw + (cw - dw) / 2, m + r * ch + (ch - dh) / 2, dw, dh);
     }
-    c.save();
-    c.setLineDash([18, 14]);
-    c.strokeStyle = '#9ca3af';
-    c.lineWidth = 3;
-    c.beginPath(); c.moveTo(W / 2, m - 30); c.lineTo(W / 2, H - m + 30); c.stroke();
-    c.beginPath(); c.moveTo(m - 30, H / 2); c.lineTo(W - m + 30, H / 2); c.stroke();
-    c.restore();
+    cortes(c, W, H, m, 2, 2);
   }
 
   /* =====================================================
@@ -474,13 +441,20 @@
       else H = state.modo === 'eleitor' ? alturaEleitor() : 1350;
       canvas.width = W;
       canvas.height = H;
-
       if (state.modo === 'candidato') {
         const d = dadosCandidato();
         if (f === 'folha') drawFolhaCandidato(ctx, W, H, d);
         else drawCandidato(ctx, W, H, d);
       } else if (f === 'folha') {
         drawFolhaEleitor(ctx, W, H);
+      } else if (f === 'stories') {
+        // stories: a lista centralizada numa tela 9:16 branca
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
+        const off = document.createElement('canvas');
+        off.width = 1080; off.height = alturaEleitor();
+        drawEleitor(off.getContext('2d'), off.width, off.height);
+        const s = Math.min(1, (H - 160) / off.height);
+        ctx.drawImage(off, (W - off.width * s) / 2, (H - off.height * s) / 2, off.width * s, off.height * s);
       } else {
         drawEleitor(ctx, W, H);
       }
@@ -495,43 +469,98 @@
   }
 
   /* =====================================================
-     Formulário do eleitor
+     Minha colinha: uma linha por cargo; o número puxa os dados
      ===================================================== */
-  function salvarEleitor() {
-    U.store.set('colinha-eleitor', state.eleitor);
+  function salvarEleitor() { U.store.set('colinha-eleitor2', state.eleitor); }
+
+  /** completa o voto com os dados do TSE (ou limpa se o número não existe) */
+  function resolverVoto(r, num) {
+    const e = state.eleitor;
+    const v = { num };
+    if (num.length === r.digitos && state.tse && state.tse.pronto()) {
+      const c = state.tse.find(r.cargo, num);
+      if (c) Object.assign(v, { nome: c.urna, partido: c.partido, pid: c.pid, sq: c.sq, uf: c.uf, ano: c.ano });
+      else v.naoAchou = true;
+    } else if (!state.tse || !state.tse.pronto()) {
+      const ant = e.votos[r.key];
+      if (ant && ant.num === num) return ant;   // sem dados: mantém o que havia
+    }
+    e.votos[r.key] = v;
+    pedirFoto(v);
+    pedirLogo(v.pid);
+    return v;
   }
+
+  function linhaHTML(r, v) {
+    const foto = v.sq ? `data/fotos/${v.ano}/${v.uf}/${v.sq}.jpg` : '';
+    let info;
+    if (v.nome) info = `<b>${esc(v.nome)}</b><small>${esc(v.partido || '')}</small>`;
+    else if (v.naoAchou) info = '<small class="warn">Número não encontrado</small>';
+    else info = `<small>${r.digitos} dígitos</small>`;
+    return `
+      <div class="vr-photo">${foto ? `<img src="${foto}" alt="" onerror="this.remove()">` : ''}</div>
+      <div class="vr-main">
+        <span class="vr-label">${r.nome}</span>
+        <input type="tel" inputmode="numeric" class="num" maxlength="${r.digitos}" aria-label="Número para ${r.nome}">
+        <span class="vr-info">${info}</span>
+      </div>`;
+  }
+  const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 
   function montarFormEleitor() {
     const e = state.eleitor;
-    U.$('#e-eleicao').value = e.eleicao;
-    U.$('#e-ano').value = e.ano;
-    U.$('#e-df').checked = !!e.df;
-    U.$('#e-sen2').checked = !!e.sen2;
-    U.$('#e-opts-geral').classList.toggle('hidden', e.eleicao !== 'geral');
-
     const box = U.$('#e-rows');
     box.innerHTML = '';
-    linhasEleitor().forEach((r, i) => {
+    linhasEleitor().forEach(r => {
       const v = e.votos[r.key] || {};
       const div = document.createElement('div');
       div.className = 'voter-row';
-      div.innerHTML = `
-        <div class="title"><span>${i + 1}. ${r.nome}</span><small>${r.digitos} dígitos</small></div>
-        <input type="tel" inputmode="numeric" class="num" maxlength="${r.digitos}" placeholder="${'_'.repeat(r.digitos)}" aria-label="Número para ${r.nome}">
-        <input type="text" maxlength="40" placeholder="Nome (opcional)" aria-label="Nome do candidato para ${r.nome}">`;
-      const [num, nome] = U.$$('input', div);
+      div.dataset.key = r.key;
+      div.innerHTML = linhaHTML(r, v);
+      const num = U.$('input', div);
       num.value = v.num || '';
-      nome.value = v.nome || '';
-      const upd = () => {
+      num.addEventListener('input', () => {
         num.value = U.onlyDigits(num.value, r.digitos);
-        e.votos[r.key] = { num: num.value, nome: nome.value.trim() };
+        const nv = resolverVoto(r, num.value);
         salvarEleitor();
+        atualizarLinha(div, r, nv);
         render();
-      };
-      num.addEventListener('input', upd);
-      nome.addEventListener('input', upd);
+      });
       box.appendChild(div);
     });
+  }
+
+  function atualizarLinha(div, r, v) {
+    const foto = U.$('.vr-photo', div);
+    const src = v.sq ? `data/fotos/${v.ano}/${v.uf}/${v.sq}.jpg` : '';
+    const img = U.$('img', foto);
+    if (!src) foto.innerHTML = '';
+    else if (!img || !img.src.endsWith(src)) foto.innerHTML = `<img src="${src}" alt="" onerror="this.remove()">`;
+    const info = U.$('.vr-info', div);
+    if (v.nome) info.innerHTML = `<b>${esc(v.nome)}</b><small>${esc(v.partido || '')}</small>`;
+    else if (v.naoAchou) info.innerHTML = '<small class="warn">Número não encontrado</small>';
+    else info.innerHTML = `<small>${r.digitos} dígitos</small>`;
+  }
+  function atualizarFotosLinhas() { /* as <img> carregam sozinhas; a arte usa state.imgs */ }
+
+  /** o painel do TSE mudou de eleição/estado/município */
+  function aoMudarDados(api) {
+    const e = state.eleitor;
+    const m = api.meta;
+    if (!m) return;
+    const muda = e.eleicao !== m.tipo;
+    e.eleicao = m.tipo;
+    e.ano = String(m.ano);
+    e.df = api.ctx.uf === 'DF';
+    e.sen2 = m.tipo === 'geral' && (m.ano - 2018) % 8 === 0;
+    e.lugar = api.lugar();
+    if (muda) e.votos = {};
+    if (api.pronto()) linhasEleitor().forEach(r => { const v = e.votos[r.key]; if (v && v.num) resolverVoto(r, v.num); });
+    salvarEleitor();
+    if (state.modo === 'eleitor') montarFormEleitor();
+    // modo candidato: ajusta o ano e completa pelo número, se der
+    if (!U.$('#c-ano').value || state.modo === 'candidato') U.$('#c-ano').value = e.ano;
+    render();
   }
 
   function adicionarAMinha(d) {
@@ -544,10 +573,12 @@
     if (key === 'dep_distrital') e.df = true;
     if (key === 'dep_estadual') e.df = false;
     if (key === 'senador' && e.sen2 && e.votos.senador && e.votos.senador.num && e.votos.senador.num !== d.num) key = 'senador2';
-    e.votos[key] = { num: d.num, nome: d.nome };
+    const v = { num: d.num, nome: (d.urna || d.nome || '').toUpperCase(), partido: d.partido, pid: d.pid, sq: d.sq, uf: d.uf, ano: d.ano };
+    e.votos[key] = v;
+    pedirFoto(v); pedirLogo(v.pid);
     salvarEleitor();
     setModo('eleitor');
-    U.toast(`${d.nome || 'Candidato'} adicionado(a) à sua colinha`);
+    U.toast(`${d.nome || 'Candidato'} está na sua colinha`);
   }
 
   /* =====================================================
@@ -572,15 +603,29 @@
   U.$$('.tabs button').forEach(b => b.addEventListener('click', () => setModo(b.dataset.mode)));
   U.$$('#formatos button').forEach(b => b.addEventListener('click', () => setFormato(b.dataset.f)));
 
+  /** modo candidato: número completo + cargo => puxa nome, partido e foto */
+  function completarPeloNumero() {
+    const cargo = U.$('#c-cargo').value;
+    const num = U.$('#c-num').value;
+    if (num.length !== CARGOS[cargo].digitos || !state.tse || !state.tse.pronto()) return;
+    const c = state.tse.find(cargo, num);
+    if (c && c.sq !== state.sq) aplicarTSE(c);
+  }
+
   formC.addEventListener('input', e => {
-    if (e.target.id === 'c-num') e.target.value = U.onlyDigits(e.target.value, CARGOS[U.$('#c-cargo').value].digitos);
+    if (e.target.id === 'c-num') {
+      e.target.value = U.onlyDigits(e.target.value, CARGOS[U.$('#c-cargo').value].digitos);
+      completarPeloNumero();
+    }
     if (e.target.id === 'c-ano') e.target.value = U.onlyDigits(e.target.value, 4);
+    if (e.target.id === 'c-nome') state.sq = '';
     render();
   });
   U.$('#c-cargo').addEventListener('change', () => {
     atualizarDicaNumero();
     const p = partidoAtual();
     if (p) U.$('#c-num').value = Partidos.numeroComPrefixo(U.$('#c-num').value, p, CARGOS[U.$('#c-cargo').value].digitos);
+    completarPeloNumero();
     render();
   });
   U.$('#c-pid').addEventListener('change', aplicarPartido);
@@ -588,39 +633,28 @@
     try { state.logoCustom = e.target.files[0] ? await U.loadImage(e.target.files[0]) : null; } catch (err) { U.toast(err.message); }
     render();
   });
-  U.$$('.swatch').forEach(s => s.addEventListener('click', () => {
-    U.$('#c-cor').value = s.dataset.color;
-    render();
-  }));
+  U.$$('.swatch').forEach(s => s.addEventListener('click', () => { U.$('#c-cor').value = s.dataset.color; render(); }));
   U.$('#c-foto').addEventListener('change', async e => {
     try {
-      state.foto = e.target.files[0] ? await U.loadImage(e.target.files[0]) : null;
+      const f = e.target.files[0];
+      state.foto = f ? await U.loadImage(f) : null;
+      state.fotoUser = !!f;
     } catch (err) { U.toast(err.message); }
     render();
   });
 
-  U.$('#e-eleicao').addEventListener('change', e => { state.eleitor.eleicao = e.target.value; salvarEleitor(); montarFormEleitor(); render(); });
-  U.$('#e-ano').addEventListener('input', e => { e.target.value = U.onlyDigits(e.target.value, 4); state.eleitor.ano = e.target.value; salvarEleitor(); render(); });
-  U.$('#e-df').addEventListener('change', e => { state.eleitor.df = e.target.checked; salvarEleitor(); montarFormEleitor(); render(); });
-  U.$('#e-sen2').addEventListener('change', e => { state.eleitor.sen2 = e.target.checked; salvarEleitor(); montarFormEleitor(); render(); });
-
   U.$('#btn-download').addEventListener('click', () => U.download(canvas, nomeArquivo()));
   U.$('#btn-share').addEventListener('click', () => {
     const d = dadosCandidato();
-    const txt = state.modo === 'candidato'
-      ? `Na urna, ${d.nome}: ${d.num}. ${linkCandidato()}`
-      : 'Minha colinha para o dia da eleição';
+    const txt = state.modo === 'candidato' ? `Na urna, ${d.nome}: ${d.num}. ${linkCandidato()}` : 'Minha colinha para o dia da eleição';
     U.share(canvas, nomeArquivo(), txt);
   });
   U.$('#btn-print').addEventListener('click', () => U.printCanvas(canvas, state.formato === 'folha' ? 'sheet' : 'small'));
 
-  function linkCandidato() {
-    const d = dadosCandidato();
-    return `${U.pageUrl()}#c=${U.encode(d)}`;
-  }
+  function linkCandidato() { return `${U.pageUrl()}#c=${U.encode(dadosCandidato())}`; }
   U.$('#btn-link').addEventListener('click', () => U.copy(linkCandidato()));
 
-  U.$('#btn-add-mine').addEventListener('click', () => adicionarAMinha(dadosCandidato()));
+  U.$('#btn-add-mine').addEventListener('click', () => adicionarAMinha({ ...dadosCandidato(), urna: dadosCandidato().nome }));
   U.$('#btn-edit').addEventListener('click', () => {
     document.body.classList.remove('view-mode');
     history.replaceState(null, '', location.pathname);
@@ -642,18 +676,26 @@
     const p = Partidos.get(c.pid);
     if (p) set('c-cor', p.cor);
     carregarLogoPartido();
+    carregarFotoCandidato(c);
     render();
   }
 
   /* ---------- início ---------- */
-  Partidos.fillSelect(U.$('#c-pid'));
-  TSE.mount(U.$('#tse-box'), aplicarTSE);
+  Partidos.fillSelect(U.$('#c-pid'), 'Outro');
+  state.tse = TSE.mount(U.$('#tse-box'), {
+    onSelect: c => (state.modo === 'eleitor' ? adicionarAMinha(c) : aplicarTSE(c)),
+    onData: aoMudarDados,
+  });
+  Object.values(state.eleitor.votos).forEach(v => { pedirFoto(v); pedirLogo(v.pid); });
+
   const AP = window.APP_PARAMS || {};
   window.APP_PARAMS = {};
   const pidHash = AP.p || U.hashParam('p');
+  let modoInicial = 'eleitor';
   if (pidHash && Partidos.get(pidHash)) {
     U.$('#c-pid').value = pidHash;
     aplicarPartido();
+    modoInicial = 'candidato';
   }
   const shared = U.hashParam('c');
   if (shared) {
@@ -661,11 +703,17 @@
     if (d && CARGOS[d.cargo]) {
       preencherCandidato(d);
       document.body.classList.add('view-mode');
-      U.$('#view-title').textContent = `Colinha de ${d.nome || 'candidato'} · ${d.num}`;
+      U.$('#view-title').textContent = `${d.nome || 'Candidato'} · ${d.num}`;
       document.title = `Colinha: ${d.nome} ${d.num}`;
+      modoInicial = 'candidato';
     }
   }
   atualizarDicaNumero();
-  render();
+  setModo(modoInicial);
+  const fontes = document.fonts ? Promise.race([
+    Promise.all([500, 600, 700, 800].map(w => document.fonts.load(`${w} 40px Inter`))),
+    new Promise(r => setTimeout(r, 2500)),
+  ]).catch(() => {}) : Promise.resolve();
+  fontes.then(render);
   U.fontsReady().then(render);
 })();

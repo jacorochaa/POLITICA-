@@ -264,6 +264,54 @@ const U = {
   },
 };
 
+/* ---------- número em caixinhas (visor da urna) ----------
+   Todo <input class="num"> ganha uma caixinha por dígito. O input continua
+   lá (invisível, por cima), então o resto do código segue usando .value. */
+U.digitInput = function (inp) {
+  if (inp.dataset.boxes) return;
+  inp.dataset.boxes = '1';
+  const wrap = document.createElement('span');
+  wrap.className = 'digits-input';
+  const row = document.createElement('span');
+  row.className = 'digits';
+  row.setAttribute('aria-hidden', 'true');
+  inp.parentNode.insertBefore(wrap, inp);
+  wrap.append(row, inp);
+
+  const sync = () => {
+    const n = Math.max(1, inp.maxLength > 0 ? inp.maxLength : (inp.value.length || 5));
+    const v = inp.value;
+    while (row.children.length < n) row.appendChild(document.createElement('span'));
+    while (row.children.length > n) row.lastChild.remove();
+    [...row.children].forEach((d, i) => {
+      d.className = 'd' + (v[i] ? '' : ' empty') + (i === Math.min(v.length, n - 1) ? ' cur' : '');
+      d.textContent = v[i] || '';
+    });
+  };
+  // atualiza também quando o código muda .value ou .maxLength diretamente
+  const desc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+  Object.defineProperty(inp, 'value', {
+    get() { return desc.get.call(this); },
+    set(v) { desc.set.call(this, v); sync(); },
+  });
+  new MutationObserver(sync).observe(inp, { attributes: true, attributeFilter: ['maxlength'] });
+  inp.addEventListener('input', sync);
+  // cursor sempre no fim, como no visor da urna
+  const fim = () => { const l = inp.value.length; try { inp.setSelectionRange(l, l); } catch (e) { /* tel */ } };
+  inp.addEventListener('focus', () => setTimeout(fim));
+  inp.addEventListener('click', fim);
+  sync();
+};
+U.enhanceDigits = (root = document) => U.$$('input.num', root).forEach(U.digitInput);
+U.enhanceDigits();
+new MutationObserver(muts => muts.forEach(m => m.addedNodes.forEach(n => {
+  if (n.nodeType !== 1) return;
+  if (n.matches('input.num')) U.digitInput(n); else U.enhanceDigits(n);
+}))).observe(document.documentElement, { childList: true, subtree: true });
+
+/** número em caixinhas, como HTML (para listas e cartões) */
+U.digitsHTML = (num, cls = '') => `<span class="digits ${cls}" aria-label="${num}">${String(num).split('').map(c => `<span class="d">${c}</span>`).join('')}</span>`;
+
 /* campos de arquivo: mostra o nome escolhido */
 document.addEventListener('change', e => {
   const inp = e.target;

@@ -3,97 +3,72 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Colinha & Moldura · artes para campanha</title>
-  <meta name="description" content="Gere a colinha do eleitor e molduras para foto de perfil e stories dos seus candidatos. Grátis, direto no navegador.">
-  <meta name="theme-color" content="#fafafa">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2318181b'/%3E%3Cg fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 15V9.5h10V15'/%3E%3Cpath d='m13.5 12 1.8 1.6 3.2-3.1'/%3E%3Crect x='7' y='15' width='18' height='10' rx='2'/%3E%3C/g%3E%3C/svg%3E">
+  <title>Colinha & Moldura</title>
+  <meta name="description" content="Monte sua colinha na ordem da urna: digite o número e aparecem foto, nome e partido. Molduras de campanha para foto de perfil.">
+  <meta name="theme-color" content="#f7f7f5">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23121212'/%3E%3Cg fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 15V9.5h10V15'/%3E%3Cpath d='m13.5 12 1.8 1.6 3.2-3.1'/%3E%3Crect x='7' y='15' width='18' height='10' rx='2'/%3E%3C/g%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <script src="js/tema.js"></script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="wrap">
-      <a class="brand" href="index.html"><span class="mark"><svg class="i"><use href="img/icons.svg#logo"/></svg></span><span class="txt">Colinha &amp; Moldura</span></a>
-      <nav class="nav">
-        <a href="colinha.html"><svg class="i i-sm"><use href="img/icons.svg#colinha"/></svg><span>Colinha</span></a>
-        <a href="moldura.html"><svg class="i i-sm"><use href="img/icons.svg#moldura"/></svg><span>Moldura</span></a>
-        <a href="partidos.html"><svg class="i i-sm"><use href="img/icons.svg#flag"/></svg><span>Partidos</span></a>
-      </nav>
-    </div>
-  </header>
+  <main class="app">
+    <aside class="side">
+      <header class="side-head">
+        <a class="brand" href="index.html"><span class="mark"><svg class="i"><use href="img/icons.svg#logo"/></svg></span><span class="txt">Colinha<span class="amp">&amp;</span>Moldura</span></a>
+        <nav class="nav" aria-label="Seções">
+          <a class="nb active" href="index.html" title="Início" aria-label="Início" aria-current="page"><svg class="i"><use href="img/icons.svg#home"/></svg></a>
+          <a class="nb" href="colinha.html" title="Colinha" aria-label="Colinha"><svg class="i"><use href="img/icons.svg#colinha"/></svg></a>
+          <a class="nb" href="moldura.html" title="Moldura" aria-label="Moldura"><svg class="i"><use href="img/icons.svg#moldura"/></svg></a>
+          <a class="nb" href="partidos.html" title="Partidos" aria-label="Partidos"><svg class="i"><use href="img/icons.svg#flag"/></svg></a>
+          <button class="nb" type="button" data-theme-toggle title="Tema claro/escuro" aria-label="Alternar tema claro ou escuro"><svg class="i only-light"><use href="img/icons.svg#moon"/></svg><svg class="i only-dark"><use href="img/icons.svg#sun"/></svg></button>
+        </nav>
+      </header>
 
-  <main class="wrap">
-    <section class="hero">
-      <span class="eyebrow"><span class="dot"></span>Grátis, sem cadastro e direto no navegador</span>
-      <h1>Colinha e moldura de campanha em poucos cliques.</h1>
-      <p>Gere a colinha com o número do candidato e molduras para foto de perfil e stories. Compartilhe um link e deixe os apoiadores fazerem o resto.</p>
-      <div class="btns">
-        <a class="btn lg" href="colinha.html"><svg class="i"><use href="img/icons.svg#colinha"/></svg>Criar colinha</a>
-        <a class="btn lg ghost" href="moldura.html"><svg class="i"><use href="img/icons.svg#moldura"/></svg>Criar moldura</a>
+      <div class="side-body hero">
+        <h1 class="display">Sua colinha fica pronta digitando os números.</h1>
+        <p class="lead">Escolha o estado, digite o número de cada candidato e a foto, o nome e o partido aparecem sozinhos. Depois é baixar ou imprimir.</p>
+        <div class="hero-ctas">
+          <a class="btn lg" href="colinha.html">Montar minha colinha</a>
+          <a class="btn lg ghost" href="moldura.html">Criar moldura</a>
+        </div>
+      </div>
+    </aside>
+
+    <section class="stage">
+      <div class="stage-inner">
+        <a class="paper" href="colinha.html" aria-label="Exemplo de colinha. Abrir o gerador">
+          <div class="paper-head">
+            <span class="paper-kick">Colinha · Eleições 2026</span>
+            <span class="paper-title">Seu estado · UF</span>
+          </div>
+          <div class="paper-row">
+            <span class="ph"></span>
+            <span class="pm"><span class="pc">Deputado(a) Federal</span><span class="digits md"><span class="d">1</span><span class="d">2</span><span class="d">3</span><span class="d">4</span></span><span class="pn">Maria da Saúde</span></span>
+            <span class="pp"><span class="chip" style="background:#1f6feb">12</span>PARTIDO</span>
+          </div>
+          <div class="paper-row">
+            <span class="ph"></span>
+            <span class="pm"><span class="pc">Senador(a)</span><span class="digits md"><span class="d">1</span><span class="d">2</span><span class="d">3</span></span><span class="pn">João do Bairro</span></span>
+            <span class="pp"><span class="chip" style="background:#1f8f4e">12</span>PARTIDO</span>
+          </div>
+          <div class="paper-row">
+            <span class="ph"></span>
+            <span class="pm"><span class="pc">Governador(a)</span><span class="digits md"><span class="d">4</span><span class="d">5</span></span><span class="pn">Ana Ribeiro</span></span>
+            <span class="pp"><span class="chip" style="background:#d97706">45</span>PARTIDO</span>
+          </div>
+          <div class="paper-row">
+            <span class="ph"></span>
+            <span class="pm"><span class="pc">Presidente</span><span class="digits md"><span class="d"></span><span class="d"></span></span><span class="pn muted">ainda não decidi</span></span>
+            <span class="pp"></span>
+          </div>
+        </a>
       </div>
     </section>
-
-    <section class="tools">
-      <a class="tool" href="colinha.html">
-        <div class="art">
-          <svg viewBox="0 0 400 200" aria-hidden="true">
-            <rect x="130" y="22" width="140" height="176" rx="10" fill="#fff" stroke="#e4e4e7"/>
-            <rect x="152" y="44" width="96" height="9" rx="4.5" fill="#18181b"/>
-            <rect x="170" y="60" width="60" height="6" rx="3" fill="#a1a1aa"/>
-            <g fill="#fff" stroke="#18181b" stroke-width="2.5">
-              <rect x="148" y="82" width="20" height="28" rx="4"/><rect x="172" y="82" width="20" height="28" rx="4"/>
-              <rect x="196" y="82" width="20" height="28" rx="4"/><rect x="220" y="82" width="20" height="28" rx="4"/>
-            </g>
-            <g font-family="Inter, Arial" font-weight="800" font-size="18" fill="#18181b" text-anchor="middle">
-              <text x="158" y="103">1</text><text x="182" y="103">2</text><text x="206" y="103">3</text><text x="230" y="103">4</text>
-            </g>
-            <rect x="166" y="124" width="68" height="18" rx="5" fill="#15803d"/>
-            <rect x="180" y="131" width="40" height="4" rx="2" fill="#fff"/>
-          </svg>
-        </div>
-        <div class="body">
-          <h2>Gerador de colinha</h2>
-          <p>Para o candidato: colinha com nome, número e partido em feed, stories ou folha A4 para recortar.</p>
-          <p>Para o eleitor: a colinha completa, na ordem da urna.</p>
-          <span class="go">Começar <svg class="i i-sm"><use href="img/icons.svg#arrow-right"/></svg></span>
-        </div>
-      </a>
-      <a class="tool" href="moldura.html">
-        <div class="art">
-          <svg viewBox="0 0 400 200" aria-hidden="true">
-            <rect x="130" y="22" width="140" height="176" rx="10" fill="#18181b"/>
-            <circle cx="200" cy="96" r="54" fill="#e4e4e7"/>
-            <circle cx="200" cy="84" r="17" fill="#fff"/>
-            <path d="M166 136a34 30 0 0 1 68 0" fill="#fff"/>
-            <circle cx="200" cy="96" r="54" fill="none" stroke="#15803d" stroke-width="6"/>
-            <rect x="160" y="164" width="80" height="10" rx="5" fill="#fff"/>
-            <rect x="176" y="180" width="48" height="6" rx="3" fill="#a1a1aa"/>
-          </svg>
-        </div>
-        <div class="body">
-          <h2>Gerador de moldura</h2>
-          <p>Monte a moldura da campanha e envie o link. O apoiador coloca a própria foto, ajusta e baixa pronta para o perfil ou os stories.</p>
-          <span class="go">Começar <svg class="i i-sm"><use href="img/icons.svg#arrow-right"/></svg></span>
-        </div>
-      </a>
-    </section>
-
-    <h2 class="section-title">Como funciona</h2>
-    <section class="features">
-      <div class="feature"><div class="ic"><svg class="i"><use href="img/icons.svg#flag"/></svg></div><h3>Escolha o partido</h3><p>Cores, logo e número do partido aplicados automaticamente.</p></div>
-      <div class="feature"><div class="ic"><svg class="i"><use href="img/icons.svg#link"/></svg></div><h3>Compartilhe o link</h3><p>Um link com a colinha ou a moldura do candidato, pronto para o WhatsApp.</p></div>
-      <div class="feature"><div class="ic"><svg class="i"><use href="img/icons.svg#printer"/></svg></div><h3>Baixe ou imprima</h3><p>PNG em alta resolução para redes sociais e folha A4 para distribuir.</p></div>
-      <div class="feature"><div class="ic"><svg class="i"><use href="img/icons.svg#shield"/></svg></div><h3>Privado</h3><p>As fotos não saem do aparelho: tudo é gerado no navegador.</p></div>
-    </section>
-
-    <div class="note">
-      <svg class="i"><use href="img/icons.svg#scale"/></svg>
-      <p><b>Legislação eleitoral:</b> respeite o calendário e as regras do TSE (Lei 9.504/97 e Res. TSE 23.610/2019). Use o campo “texto legal” para coligação/federação e CNPJ. Celular não entra na cabine de votação, então imprima a colinha.</p>
-    </div>
   </main>
 
-  <footer class="site">Ferramenta gratuita. As imagens são geradas no seu aparelho.</footer>
+  <footer class="site">Grátis e sem cadastro. Dados e fotos: TSE. Respeite a legislação eleitoral (Lei 9.504/97, Res. TSE 23.610/2019).</footer>
 </body>
 </html>

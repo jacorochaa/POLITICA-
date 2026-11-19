@@ -5,71 +5,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Partidos · Colinha & Moldura</title>
   <meta name="description" content="Os 30 partidos registrados no TSE com número, cores e logo, para gerar molduras e colinhas no estilo de cada partido.">
-  <meta name="theme-color" content="#fafafa">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2318181b'/%3E%3Cg fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 15V9.5h10V15'/%3E%3Cpath d='m13.5 12 1.8 1.6 3.2-3.1'/%3E%3Crect x='7' y='15' width='18' height='10' rx='2'/%3E%3C/g%3E%3C/svg%3E">
+  <meta name="theme-color" content="#f7f7f5">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23121212'/%3E%3Cg fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 15V9.5h10V15'/%3E%3Cpath d='m13.5 12 1.8 1.6 3.2-3.1'/%3E%3Crect x='7' y='15' width='18' height='10' rx='2'/%3E%3C/g%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <style>
-    .toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 20px 0 16px; }
-    .search { position: relative; flex: 1; max-width: 380px; }
-    .search .i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
-    .search input { padding-left: 38px; }
-    .count { color: var(--muted); font-size: 13.5px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; padding-bottom: 32px; }
-    .party { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; display: flex; flex-direction: column; transition: border-color .15s, box-shadow .15s; }
-    .party:hover { border-color: var(--line-strong); box-shadow: 0 8px 24px rgba(24, 24, 27, .06); }
-    .party .logo { aspect-ratio: 2 / 1; display: grid; place-items: center; background: #fafafa; border-bottom: 1px solid var(--line); }
-    .party .logo canvas { width: 100%; height: 100%; display: block; }
-    .party .body { padding: 14px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
-    .party .head { display: flex; align-items: center; gap: 10px; }
-    .party .num { font-weight: 700; font-size: 15px; min-width: 40px; height: 32px; border-radius: 8px; display: grid; place-items: center; font-variant-numeric: tabular-nums; }
-    .party .sigla { font-weight: 700; font-size: 14.5px; line-height: 1.2; }
-    .party .nome { color: var(--muted); font-size: 12.5px; line-height: 1.3; }
-    .party .meta { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
-    .party .meta span.c { width: 14px; height: 14px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
-    .party .acts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: auto; }
-    .party .acts .btn { height: 36px; padding: 0 10px; font-size: 13px; }
-  </style>
+  <script src="js/tema.js"></script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="wrap">
-      <a class="brand" href="index.html"><span class="mark"><svg class="i"><use href="img/icons.svg#logo"/></svg></span><span class="txt">Colinha &amp; Moldura</span></a>
-      <nav class="nav">
-        <a href="colinha.html"><svg class="i i-sm"><use href="img/icons.svg#colinha"/></svg><span>Colinha</span></a>
-        <a href="moldura.html"><svg class="i i-sm"><use href="img/icons.svg#moldura"/></svg><span>Moldura</span></a>
-        <a href="partidos.html" class="active"><svg class="i i-sm"><use href="img/icons.svg#flag"/></svg><span>Partidos</span></a>
-      </nav>
-    </div>
-  </header>
+  <main class="app">
+    <aside class="side">
+      <header class="side-head">
+        <a class="brand" href="index.html"><span class="mark"><svg class="i"><use href="img/icons.svg#logo"/></svg></span><span class="txt">Colinha<span class="amp">&amp;</span>Moldura</span></a>
+        <nav class="nav" aria-label="Seções">
+          <a class="nb" href="index.html" title="Início" aria-label="Início"><svg class="i"><use href="img/icons.svg#home"/></svg></a>
+          <a class="nb" href="colinha.html" title="Colinha" aria-label="Colinha"><svg class="i"><use href="img/icons.svg#colinha"/></svg></a>
+          <a class="nb" href="moldura.html" title="Moldura" aria-label="Moldura"><svg class="i"><use href="img/icons.svg#moldura"/></svg></a>
+          <a class="nb active" href="partidos.html" title="Partidos" aria-label="Partidos" aria-current="page"><svg class="i"><use href="img/icons.svg#flag"/></svg></a>
+          <button class="nb" type="button" data-theme-toggle title="Tema claro/escuro" aria-label="Alternar tema claro ou escuro"><svg class="i only-light"><use href="img/icons.svg#moon"/></svg><svg class="i only-dark"><use href="img/icons.svg#sun"/></svg></button>
+        </nav>
+      </header>
 
-  <main class="wrap">
-    <div class="page-head">
-      <div>
-        <h1>Partidos</h1>
-        <p>Os 30 partidos com registro no TSE. Escolha um para criar a moldura ou a colinha nas cores e com a logo dele.</p>
+      <div class="side-body">
+        <h1 class="page-title">Partidos</h1>
+        <p class="lead">Os 30 partidos com registro no TSE. Escolha um para fazer a moldura ou a colinha nas cores dele.</p>
+
+        <div class="search lg">
+          <svg class="i"><use href="img/icons.svg#search"/></svg>
+          <input type="search" id="busca" placeholder="Sigla, nome ou número" aria-label="Buscar partido">
+        </div>
+        <div class="count-row">
+          <span class="muted" id="contagem"></span>
+        </div>
       </div>
-    </div>
 
-    <div class="toolbar">
-      <div class="search">
-        <svg class="i"><use href="img/icons.svg#search"/></svg>
-        <input type="text" id="busca" placeholder="Buscar por sigla, nome ou número" aria-label="Buscar partido">
+    </aside>
+
+    <section class="stage">
+      <div class="stage-inner">
+        <div class="grid" id="grid"></div>
       </div>
-      <span class="count" id="contagem"></span>
-    </div>
-
-    <div class="grid" id="grid"></div>
-
-    <div class="note neutral">
-      <svg class="i"><use href="img/icons.svg#flag"/></svg>
-      <p>Logos do Wikimedia Commons, com a licença de cada arquivo em <a href="img/partidos/CREDITOS.md">créditos</a>. Sem logo disponível, o site usa um selo com sigla e número. Nos editores você pode enviar a logo oficial e ajustar as cores. Logos e nomes são marcas dos respectivos partidos.</p>
-    </div>
+    </section>
   </main>
 
-  <footer class="site">Lista conforme o registro no TSE (nov/2026). Confira sempre o site oficial do TSE.</footer>
+  <footer class="site">Registro no TSE em nov/2026. Logos do Wikimedia Commons (<a href="img/partidos/CREDITOS.md">créditos</a>); sem logo, usamos um selo com sigla e número. Marcas dos respectivos partidos.</footer>
 
   <script src="js/common.js"></script>
   <script src="js/partidos.js"></script>

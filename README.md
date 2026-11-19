@@ -29,6 +29,7 @@ e nome/número e preenche tudo: nome de urna, número, cargo, partido (cores e l
   Também pode ser rodado manualmente em *Actions → Atualizar candidaturas do TSE → Run workflow*
   (informe anos, ex.: `2028`). Para incluir uma eleição nova, rode com o ano ou edite `ANOS_PADRAO` no script.
 - Rodar localmente: `python3 scripts/atualizar_candidatos.py 2026 2024`
+- Fotos: `node scripts/atualizar_fotos.mjs 2026` baixa as fotos oficiais e salva uma por arquivo em `data/fotos/<ano>/<UF>/<sq>.jpg` (cerca de 115 MB para 2026). O site não busca direto no TSE porque o servidor de lá manda o cabeçalho CORS duplicado e o navegador recusa.
 
 ## Como publicar (grátis) no GitHub Pages
 

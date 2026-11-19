@@ -30,12 +30,15 @@ jobs:
       - name: Baixar e processar dados abertos do TSE
         run: python3 scripts/atualizar_candidatos.py ${{ github.event.inputs.anos }}
 
+      - name: Baixar fotos das candidaturas (eleição geral mais recente)
+        run: node scripts/atualizar_fotos.mjs 2026
+
       - name: Salvar alterações
         run: |
-          if [ -n "$(git status --porcelain data/candidatos)" ]; then
+          if [ -n "$(git status --porcelain data/candidatos data/fotos)" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add data/candidatos
+            git add data/candidatos data/fotos
             git commit -m "Atualiza candidaturas do TSE ($(date -u +%Y-%m-%d))"
             git push
           else
