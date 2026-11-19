@@ -40,7 +40,7 @@ const PARTIDOS = [
 ];
 
 /* preenchido automaticamente: partidos com logo em img/partidos/ */
-const PARTIDOS_COM_LOGO = ['democrata', 'novo', 'pl', 'prd', 'psd', 'pstu', 'rede', 'solidariedade'];
+const PARTIDOS_COM_LOGO = ['agir', 'avante', 'cidadania', 'dc', 'democrata', 'mdb', 'missao', 'mobiliza', 'novo', 'pcb', 'pcdob', 'pco', 'pdt', 'pl', 'podemos', 'pp', 'prd', 'prtb', 'psb', 'psd', 'psdb', 'psol', 'pstu', 'pt', 'pv', 'rede', 'republicanos', 'solidariedade', 'uniao', 'up'];
 
 PARTIDOS.forEach(p => { p.logo = PARTIDOS_COM_LOGO.includes(p.id); });
 
