@@ -10,14 +10,123 @@
     photo: null,
     zoom: 1, ox: 0, oy: 0, rot: 0,
     custom: null,
+    logoCustom: null,
+    logoPartido: null,
   };
 
   const size = () => (state.formato === 'perfil' ? [1080, 1080] : [1080, 1920]);
+
+  /* ---------- logo do partido ---------- */
+  function logo(d) {
+    const p = Partidos.get(d.pid);
+    if (!d.lg || (!p && !state.logoCustom)) return null;
+    return { img: state.logoCustom || state.logoPartido, p };
+  }
+  /** logo num cartão branco; largura acompanha o formato da logo */
+  function logoCard(c, L, cx, cy, h, u, maxW) {
+    if (!L) return 0;
+    const ratio = L.img ? L.img.width / L.img.height : 1;
+    const w = L.img ? Math.min(maxW || h * 2.6, Math.max(h, h * ratio * 0.8 + h * 0.2)) : h;
+    if (L.img) {
+      c.save();
+      c.shadowColor = 'rgba(0,0,0,.25)'; c.shadowBlur = 18 * u; c.shadowOffsetY = 5 * u;
+      U.roundRect(c, cx - w / 2, cy - h / 2, w, h, h * 0.2);
+      c.fillStyle = '#fff'; c.fill();
+      c.restore();
+      Partidos.draw(c, L.img, L.p, cx - w / 2 + h * 0.1, cy - h / 2 + h * 0.1, w - h * 0.2, h * 0.8);
+    } else {
+      Partidos.draw(c, null, L.p, cx - h / 2, cy - h / 2, h, h);
+    }
+    return w;
+  }
+  /** posição padrão: canto superior esquerdo, dentro do recorte redondo do perfil */
+  function logoCorner(c, W, H, d, u) {
+    const L = logo(d);
+    if (!L) return;
+    const h = (H > W ? 150 : 120) * u;
+    const cx = H > W ? 70 * u + h : 245 * u;
+    const cy = H > W ? 70 * u + h / 2 : 215 * u;
+    logoCard(c, L, cx, cy, h, u, h * 2);
+  }
 
   /* =====================================================
      Modelos de moldura — desenhados por cima da foto
      ===================================================== */
   const TEMPLATES = {
+    /* Nas cores do partido, com a logo em destaque */
+    partido(c, W, H, d) {
+      const u = W / 1080;
+      const tall = H > W;
+      const cargo = CARGOS[d.cargo] || CARGOS.vereador;
+      const on = U.textOn(d.cor);
+      const L = logo(d);
+
+      // moldura fina nas duas cores
+      c.lineWidth = 22 * u; c.strokeStyle = d.cor;
+      c.strokeRect(11 * u, 11 * u, W - 22 * u, H - 22 * u);
+      c.lineWidth = 8 * u; c.strokeStyle = d.cor2;
+      c.strokeRect(26 * u, 26 * u, W - 52 * u, H - 52 * u);
+
+      // faixas diagonais nos cantos de cima
+      [[0, 1], [W, -1]].forEach(([x0, dir]) => {
+        c.fillStyle = d.cor;
+        c.beginPath(); c.moveTo(x0, 0); c.lineTo(x0 + dir * 150 * u, 0); c.lineTo(x0, 150 * u); c.closePath(); c.fill();
+        c.fillStyle = d.cor2;
+        c.beginPath(); c.moveTo(x0 + dir * 168 * u, 0); c.lineTo(x0 + dir * 196 * u, 0); c.lineTo(x0, 196 * u); c.lineTo(x0, 168 * u); c.closePath(); c.fill();
+      });
+
+      // bloco inferior com borda curva
+      const bandH = (tall ? 520 : 330) * u;
+      const top = H - bandH;
+      const curve = () => {
+        c.beginPath();
+        c.moveTo(0, top + 60 * u);
+        c.quadraticCurveTo(W / 2, top - 50 * u, W, top + 60 * u);
+      };
+      const g = c.createLinearGradient(0, top, 0, H);
+      g.addColorStop(0, d.cor); g.addColorStop(1, U.shade(d.cor, -0.35));
+      c.fillStyle = g;
+      curve(); c.lineTo(W, H); c.lineTo(0, H); c.closePath(); c.fill();
+      c.strokeStyle = d.cor2; c.lineWidth = 14 * u;
+      curve(); c.stroke();
+
+      // logo em destaque no topo do bloco
+      const lh = (tall ? 200 : 170) * u;
+      const ly = top - (tall ? 40 : 50) * u;
+      if (L) logoCard(c, L, W / 2, ly, lh, u, (tall ? 520 : 420) * u);
+
+      let y = ly + lh / 2 + (tall ? 120 : 80) * u;
+      c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+      c.fillStyle = on;
+      U.fitFont(c, d.nome, (tall ? 940 : 720) * u, (tall ? 96 : 72) * u, 900, 28 * u);
+      c.fillText(d.nome, W / 2, y);
+      y += (tall ? 110 : 82) * u;
+
+      // VOTE + número
+      const vSize = (tall ? 44 : 34) * u;
+      c.font = U.font(800, vSize);
+      const vW = c.measureText('VOTE ').width;
+      const ns = U.fitFont(c, d.num || '', (tall ? 560 : 380) * u, (tall ? 130 : 86) * u, 900);
+      const nW = c.measureText(d.num || '').width;
+      const sx = W / 2 - (vW + nW) / 2;
+      c.textAlign = 'left';
+      c.fillStyle = on;
+      c.font = U.font(800, vSize);
+      c.fillText('VOTE ', sx, y);
+      c.fillStyle = (d.cor2 === '#ffffff' || on === '#111827') ? on : d.cor2;
+      c.font = U.font(900, ns);
+      c.fillText(d.num || '', sx + vW, y);
+
+      c.textAlign = 'center';
+      c.globalAlpha = 0.9; c.fillStyle = on;
+      const sub = (cargo.nome + (d.partido ? ' · ' + d.partido : '')).toUpperCase();
+      U.fitFont(c, sub, (tall ? 900 : 520) * u, (tall ? 34 : 26) * u, 700);
+      c.fillText(sub, W / 2, y + (tall ? 70 : 46) * u);
+      c.globalAlpha = 1;
+
+      if (d.slogan) slogan(c, W, d, (tall ? 90 : 60) * u, tall ? 900 * u : 440 * u, u);
+    },
+
     /* Faixa inferior com nome + selo "VOTE 12345" (seguro p/ recorte redondo) */
     faixa(c, W, H, d) {
       const u = W / 1080;
@@ -91,6 +200,7 @@
 
       // frase no topo
       if (d.slogan) slogan(c, W, d, (tall ? 90 : 52) * u, tall ? 900 * u : 460 * u, u);
+      logoCorner(c, W, H, d, u);
     },
 
     /* Anel com texto curvo — ideal para foto de perfil */
@@ -138,9 +248,20 @@
       while (fs > 28 * u && c.measureText(botTxt).width > tr * Math.PI * 0.7) { fs -= 2; c.font = U.font(900, fs); }
       U.arcText(c, botTxt, cx, cy, tr, false);
 
-      // estrelinhas nas laterais
+      // estrelinhas nas laterais (ou a logo do partido)
       c.fillStyle = d.cor2;
-      [Math.PI, 0].forEach(a => star(c, cx + tr * Math.cos(a), cy + tr * Math.sin(a), 18 * u));
+      const L = logo(d);
+      if (L) {
+        const s = Math.min(ringW - 24 * u, 110 * u);
+        [Math.PI, 0].forEach(a => {
+          const lx = cx + tr * Math.cos(a), ly = cy + tr * Math.sin(a);
+          c.beginPath(); c.arc(lx, ly, s / 2 + 6 * u, 0, Math.PI * 2);
+          c.fillStyle = '#fff'; c.fill();
+          Partidos.draw(c, L.img, L.p, lx - s / 2 + 8 * u, ly - s / 2 + 8 * u, s - 16 * u, s - 16 * u);
+        });
+      } else {
+        [Math.PI, 0].forEach(a => star(c, cx + tr * Math.cos(a), cy + tr * Math.sin(a), 18 * u));
+      }
 
       if (tall) {
         // bloco inferior nos stories
@@ -228,6 +349,7 @@
         c.fillText(d.partido, lx + 20 * u, ly + lh + 36 * u + 2 * u);
       }
       if (d.slogan) slogan(c, W, d, (tall ? 90 : 76) * u, tall ? 900 * u : 520 * u, u);
+      logoCorner(c, W, H, d, u);
     },
 
     /* Gradiente escuro embaixo, nome grande e número em destaque */
@@ -286,6 +408,7 @@
       // barra lateral
       c.fillStyle = d.cor2;
       c.fillRect(left - 34 * u, y - 70 * u, 12 * u, H - (tall ? 200 : 115) * u - (y - 70 * u));
+      logoCorner(c, W, H, d, u);
     },
 
     custom(c, W, H) {
@@ -326,7 +449,7 @@
   /** onde o rosto deve ficar em cada modelo (para centralizar a foto) */
   function focusY(W, H) {
     if (state.cfg.t === 'circulo' && H > W) return H * 0.38 - H / 2;
-    if (state.cfg.t === 'faixa' || state.cfg.t === 'moderno') return -(H > W ? 160 : 90);
+    if (['faixa', 'moderno', 'partido'].includes(state.cfg.t)) return -(H > W ? 180 : 110);
     return 0;
   }
 
@@ -380,6 +503,8 @@
       t: state.cfg.t,
       nome: v('m-nome'),
       cargo,
+      pid: v('m-pid'),
+      lg: U.$('#m-showlogo').checked ? 1 : 0,
       num: U.onlyDigits(v('m-num'), CARGOS[cargo].digitos),
       partido: v('m-partido'),
       slogan: v('m-slogan'),
@@ -393,6 +518,8 @@
     set('m-nome', cfg.nome); set('m-num', cfg.num); set('m-partido', cfg.partido);
     set('m-slogan', cfg.slogan);
     if (CARGOS[cfg.cargo]) set('m-cargo', cfg.cargo);
+    if (cfg.pid && Partidos.get(cfg.pid)) { set('m-pid', cfg.pid); carregarLogo(); }
+    if (cfg.lg !== undefined) U.$('#m-showlogo').checked = !!cfg.lg;
     if (/^#[0-9a-f]{6}$/i.test(cfg.cor || '')) set('m-cor', cfg.cor);
     if (/^#[0-9a-f]{6}$/i.test(cfg.cor2 || '')) set('m-cor2', cfg.cor2);
     setTemplate(cfg.t);
@@ -409,6 +536,28 @@
   }
 
   U.$$('.tpl').forEach(b => b.addEventListener('click', () => setTemplate(b.dataset.t)));
+
+  async function carregarLogo() {
+    state.logoPartido = await Partidos.loadLogo(U.$('#m-pid').value);
+    render();
+  }
+  function aplicarPartido() {
+    const p = Partidos.get(U.$('#m-pid').value);
+    if (p) {
+      U.$('#m-partido').value = p.sigla;
+      U.$('#m-cor').value = p.cor;
+      U.$('#m-cor2').value = p.cor2;
+      const inp = U.$('#m-num');
+      inp.value = Partidos.numeroComPrefixo(inp.value, p, CARGOS[U.$('#m-cargo').value].digitos);
+    }
+    lerForm();
+    carregarLogo();
+  }
+  U.$('#m-pid').addEventListener('change', aplicarPartido);
+  U.$('#m-logo').addEventListener('change', async e => {
+    try { state.logoCustom = e.target.files[0] ? await U.loadImage(e.target.files[0]) : null; } catch (err) { U.toast(err.message); }
+    render();
+  });
   U.$('#form-moldura').addEventListener('input', e => {
     if (e.target.id === 'm-num') e.target.value = U.onlyDigits(e.target.value, CARGOS[U.$('#m-cargo').value].digitos);
     lerForm();
@@ -418,6 +567,8 @@
     const inp = U.$('#m-num');
     inp.maxLength = CARGOS[U.$('#m-cargo').value].digitos;
     inp.value = U.onlyDigits(inp.value, inp.maxLength);
+    const p = Partidos.get(U.$('#m-pid').value);
+    if (p) inp.value = Partidos.numeroComPrefixo(inp.value, p, inp.maxLength);
     lerForm();
     render();
   });
@@ -544,6 +695,13 @@
   window.addEventListener('hashchange', () => location.reload());
 
   /* ---------- início ---------- */
+  Partidos.fillSelect(U.$('#m-pid'));
+  const pidHash = U.hashParam('p');
+  if (pidHash && Partidos.get(pidHash)) {
+    U.$('#m-pid').value = pidHash;
+    setTemplate('partido');
+    aplicarPartido();
+  }
   const shared = U.hashParam('m');
   if (shared) {
     const cfg = U.decode(shared);

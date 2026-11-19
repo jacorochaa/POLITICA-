@@ -18,6 +18,7 @@
       <nav class="nav">
         <a href="colinha.html" class="active">Colinha</a>
         <a href="moldura.html">Moldura</a>
+        <a href="partidos.html">Partidos</a>
       </nav>
     </div>
   </header>
@@ -53,6 +54,11 @@
           </div>
           <div class="only-edit">
             <h2>Dados do candidato</h2>
+            <div class="field">
+              <label for="c-pid">Partido</label>
+              <select id="c-pid" name="pid"></select>
+              <small>Preenche sigla, cores, logo e o começo do número. <a href="partidos.html">Ver todos os partidos</a></small>
+            </div>
             <div class="field">
               <label for="c-nome">Nome na urna</label>
               <input type="text" id="c-nome" name="nome" maxlength="40" placeholder="Ex.: Maria da Saúde" value="Maria da Saúde">
@@ -119,6 +125,12 @@
               <small>A foto fica só no seu aparelho e não vai no link compartilhado.</small>
             </div>
             <div class="field">
+              <label for="c-logo">Logo do partido (opcional)</label>
+              <input type="file" id="c-logo" accept="image/png,image/webp,image/jpeg,image/svg+xml">
+              <small>Envie a logo oficial em PNG para substituir a do site (não vai no link).</small>
+              <label class="check"><input type="checkbox" id="c-showlogo" checked> Mostrar logo na colinha</label>
+            </div>
+            <div class="field">
               <label for="c-legal">Texto legal (opcional)</label>
               <input type="text" id="c-legal" name="legal" maxlength="140" placeholder="Ex.: Coligação X (PXX/PYY) · CNPJ 00.000.000/0001-00">
               <small>Coligação/federação, CNPJ, tiragem etc. Aparece em letra pequena no rodapé.</small>
@@ -178,6 +190,7 @@
   <footer class="site">Tudo é gerado no seu aparelho — nenhuma foto ou dado é enviado a servidores.</footer>
 
   <script src="js/common.js"></script>
+  <script src="js/partidos.js"></script>
   <script src="js/colinha.js"></script>
 </body>
 </html>

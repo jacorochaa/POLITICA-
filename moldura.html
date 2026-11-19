@@ -18,6 +18,7 @@
       <nav class="nav">
         <a href="colinha.html">Colinha</a>
         <a href="moldura.html" class="active">Moldura</a>
+        <a href="partidos.html">Partidos</a>
       </nav>
     </div>
   </header>
@@ -42,6 +43,7 @@
         <form class="panel only-edit" id="form-moldura" autocomplete="off" onsubmit="return false">
           <h2>1. Modelo da moldura</h2>
           <div class="templates" id="templates">
+            <button type="button" class="tpl" data-t="partido"><span class="ico">🏛️</span>Partido</button>
             <button type="button" class="tpl active" data-t="faixa"><span class="ico">▬</span>Faixa</button>
             <button type="button" class="tpl" data-t="circulo"><span class="ico">◯</span>Círculo</button>
             <button type="button" class="tpl" data-t="selo"><span class="ico">✪</span>Selo</button>
@@ -59,6 +61,11 @@
 
           <div id="fields-box">
             <h2 style="margin-top:20px">2. Dados</h2>
+            <div class="field">
+              <label for="m-pid">Partido</label>
+              <select id="m-pid"></select>
+              <small>Aplica as cores, a logo e o número do partido. <a href="partidos.html">Ver todos</a></small>
+            </div>
             <div class="field">
               <label for="m-nome">Nome do candidato</label>
               <input type="text" id="m-nome" maxlength="40" value="Maria da Saúde">
@@ -116,6 +123,12 @@
             </div>
           </div>
 
+            <div class="field">
+              <label for="m-logo">Logo do partido (opcional)</label>
+              <input type="file" id="m-logo" accept="image/png,image/webp,image/jpeg,image/svg+xml">
+              <small>Substitui a logo do site só neste aparelho (não vai no link).</small>
+              <label class="check"><input type="checkbox" id="m-showlogo" checked> Mostrar logo na moldura</label>
+            </div>
           <h2 style="margin-top:8px">3. Compartilhe</h2>
           <button type="button" class="btn block" id="btn-link">🔗 Copiar link para apoiadores</button>
           <p style="color:var(--muted);font-size:.85rem;margin:8px 0 0">Quem abrir o link vê só a sua moldura e envia a própria foto.</p>
@@ -165,6 +178,7 @@
   <footer class="site">Sua foto não sai do seu aparelho: a montagem é feita no navegador.</footer>
 
   <script src="js/common.js"></script>
+  <script src="js/partidos.js"></script>
   <script src="js/moldura.js"></script>
 </body>
 </html>

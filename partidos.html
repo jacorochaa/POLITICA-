@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Partidos — Colinha & Moldura</title>
+  <meta name="description" content="Os 30 partidos registrados no TSE com número, cores e logo, para gerar molduras e colinhas no estilo de cada partido.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗳️</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .party-tools { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 12px 0 20px; }
+    .party-tools input { max-width: 340px; }
+    .party-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; padding-bottom: 40px; }
+    .party {
+      background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+    .party .top { height: 120px; display: grid; place-items: center; position: relative; }
+    .party .top canvas { width: 100%; height: 100%; display: block; }
+    .party .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .party .head { display: flex; align-items: center; gap: 10px; }
+    .party .num {
+      font-weight: 900; font-size: 1.25rem; min-width: 52px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    }
+    .party .sigla { font-weight: 900; font-size: 1.05rem; line-height: 1.1; }
+    .party .nome { color: var(--muted); font-size: .82rem; line-height: 1.3; }
+    .party .dots { display: flex; gap: 6px; margin-top: 2px; }
+    .party .dots span { width: 18px; height: 18px; border-radius: 50%; box-shadow: 0 0 0 1.5px var(--line); }
+    .party .acts { display: flex; gap: 8px; margin-top: auto; padding-top: 8px; }
+    .party .acts .btn { flex: 1; padding: 10px 8px; font-size: .85rem; }
+    .party .nologo { font-size: .72rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap">
+      <a class="logo" href="index.html"><span class="mark">🗳️</span><span class="txt">Colinha&nbsp;&amp;&nbsp;Moldura</span></a>
+      <nav class="nav">
+        <a href="colinha.html">Colinha</a>
+        <a href="moldura.html">Moldura</a>
+        <a href="partidos.html" class="active">Partidos</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="page-head">
+      <h1>Partidos</h1>
+      <p>Os 30 partidos com registro no TSE. Escolha um para criar a moldura ou a colinha nas cores e com a logo do partido.</p>
+    </div>
+
+    <div class="party-tools">
+      <input type="text" id="busca" placeholder="Buscar por sigla, nome ou número…" aria-label="Buscar partido">
+      <span id="contagem" style="color:var(--muted);font-size:.9rem"></span>
+    </div>
+
+    <div class="party-grid" id="grid"></div>
+
+    <div class="notice info">
+      As logos vêm do Wikimedia Commons, com a licença indicada em cada arquivo (veja <a href="img/partidos/CREDITOS.md">créditos</a>).
+      Quando a logo não está disponível, o site usa um selo com a sigla e o número nas cores do partido.
+      Nos editores você pode <b>enviar a logo oficial</b> em PNG, e todas as cores podem ser ajustadas.
+      Logos e nomes são marcas dos respectivos partidos.
+    </div>
+  </main>
+
+  <footer class="site">Lista de partidos conforme o registro no TSE (nov/2026). Confira sempre o site oficial do TSE.</footer>
+
+  <script src="js/common.js"></script>
+  <script src="js/partidos.js"></script>
+  <script>
+    (() => {
+      const grid = U.$('#grid');
+      const cards = PARTIDOS.map(p => {
+        const el = document.createElement('article');
+        el.className = 'party';
+        el.dataset.q = `${p.sigla} ${p.nome} ${p.num}`.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+        el.innerHTML = `
+          <div class="top" style="background:linear-gradient(135deg, ${p.cor}, ${U.shade(p.cor, -0.35)})"><canvas width="460" height="240"></canvas></div>
+          <div class="body">
+            <div class="head">
+              <div class="num" style="background:${p.cor};color:${U.textOn(p.cor)}">${p.num}</div>
+              <div><div class="sigla">${p.sigla}</div><div class="nome">${p.nome}</div></div>
+            </div>
+            <div class="dots"><span style="background:${p.cor}"></span><span style="background:${p.cor2}"></span>
+              ${p.logo ? '' : '<small class="nologo">· selo gerado (sem logo)</small>'}</div>
+            <div class="acts">
+              <a class="btn" href="moldura.html#p=${p.id}">🖼️ Moldura</a>
+              <a class="btn secondary" href="colinha.html#p=${p.id}">📝 Colinha</a>
+            </div>
+          </div>`;
+        grid.appendChild(el);
+        const cv = U.$('canvas', el);
+        const draw = img => {
+          const c = cv.getContext('2d');
+          c.clearRect(0, 0, cv.width, cv.height);
+          if (img) Partidos.draw(c, img, p, 60, 30, 340, 180, { box: true, pad: 22, radius: 24 });
+          else Partidos.draw(c, null, p, 140, 30, 180, 180);
+        };
+        Partidos.loadLogo(p.id).then(draw);
+        U.fontsReady().then(() => Partidos.loadLogo(p.id).then(draw));
+        return el;
+      });
+
+      const busca = U.$('#busca');
+      const filtrar = () => {
+        const q = busca.value.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+        let n = 0;
+        cards.forEach(el => { const ok = !q || el.dataset.q.includes(q); el.classList.toggle('hidden', !ok); n += ok; });
+        U.$('#contagem').textContent = `${n} partido${n === 1 ? '' : 's'}`;
+      };
+      busca.addEventListener('input', filtrar);
+      filtrar();
+    })();
+  </script>
+</body>
+</html>

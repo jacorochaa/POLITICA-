@@ -10,6 +10,8 @@
     modo: 'candidato',          // 'candidato' | 'eleitor'
     formato: 'feed',            // 'feed' | 'stories' | 'folha'
     foto: null,
+    logoCustom: null,           // logo enviada pelo usuário
+    logoPartido: null,          // logo do site (img/partidos)
     eleitor: U.store.get('colinha-eleitor', {
       eleicao: 'municipal', ano: '2028', df: false, sen2: false, votos: {},
     }),
@@ -24,6 +26,8 @@
     return {
       nome: v('c-nome'),
       cargo,
+      pid: v('c-pid'),
+      lg: U.$('#c-showlogo').checked ? 1 : 0,
       num: U.onlyDigits(v('c-num'), CARGOS[cargo].digitos),
       partido: v('c-partido'),
       ano: U.onlyDigits(v('c-ano'), 4),
@@ -37,6 +41,8 @@
   function preencherCandidato(d) {
     const set = (id, val) => { if (val !== undefined && val !== null) U.$('#' + id).value = val; };
     if (d.cargo && CARGOS[d.cargo]) set('c-cargo', d.cargo);
+    if (d.pid && Partidos.get(d.pid)) { set('c-pid', d.pid); carregarLogoPartido(); }
+    if (d.lg !== undefined) U.$('#c-showlogo').checked = !!d.lg;
     set('c-nome', d.nome); set('c-num', d.num); set('c-partido', d.partido);
     set('c-ano', d.ano); set('c-cid', d.cid); set('c-slogan', d.slogan);
     set('c-legal', d.legal);
@@ -50,6 +56,32 @@
     inp.maxLength = cargo.digitos;
     inp.value = U.onlyDigits(inp.value, cargo.digitos);
     U.$('#c-num-hint').textContent = `${cargo.digitos} dígitos`;
+  }
+
+  /* ---------- partido ---------- */
+  function partidoAtual() { return Partidos.get(U.$('#c-pid').value); }
+
+  /** logo a desenhar (enviada > do site > selo com sigla) ou null se desligada */
+  function logoInfo(d) {
+    const p = Partidos.get(d.pid);
+    if (!d.lg || (!p && !state.logoCustom)) return null;
+    return { img: state.logoCustom || state.logoPartido, p };
+  }
+
+  async function carregarLogoPartido() {
+    state.logoPartido = await Partidos.loadLogo(U.$('#c-pid').value);
+    render();
+  }
+
+  function aplicarPartido() {
+    const p = partidoAtual();
+    if (p) {
+      U.$('#c-partido').value = p.sigla;
+      U.$('#c-cor').value = p.cor;
+      const dig = CARGOS[U.$('#c-cargo').value].digitos;
+      U.$('#c-num').value = Partidos.numeroComPrefixo(U.$('#c-num').value, p, dig);
+    }
+    carregarLogoPartido();
   }
 
   /* =====================================================
@@ -119,7 +151,9 @@
     const H_label = 74;
     const H_boxes = boxH + 40;
     const H_conf = 72 + (d.partido ? 44 : 0);
-    const H_part = d.partido ? 46 : 0;
+    const logo = logoInfo(d);
+    const logoH = logo ? (tall ? 130 : 96) : 0;
+    const H_part = (d.partido ? 46 : 0) + (logo ? logoH + 20 : 0);
     const total = H_photo + H_name + H_cargo + H_label + H_boxes + H_conf + H_part;
     let y = cardY + Math.max(40, (cardH - total) / 2);
     const cx = W / 2;
@@ -185,8 +219,14 @@
     c.fillText('CONFIRMA', startX + preW + sp + btnW / 2, y + btnH / 2 + 2);
     y += H_conf;
 
-    // partido
+    // partido (logo + sigla)
+    if (logo) {
+      const lw = logo.img ? Math.min(inner, logoH * Math.max(1, logo.img.width / logo.img.height)) : logoH;
+      Partidos.draw(c, logo.img, logo.p, cx - lw / 2, y - 14, lw, logoH);
+      y += logoH + 20;
+    }
     if (d.partido) {
+      c.textAlign = 'center';
       c.textBaseline = 'alphabetic';
       c.fillStyle = '#374151';
       U.fitFont(c, d.partido, inner, 34, 800);
@@ -258,6 +298,7 @@
     c.fillStyle = '#6b7280';
     U.setSpacing(c, 6);
     c.font = U.font(800, 30);
+    U.fitFont(c, `COLINHA · ELEIÇÕES ${d.ano || ''}`, inner - 300, 30, 800);
     c.fillText(`COLINHA · ELEIÇÕES ${d.ano || ''}`, cx, y + 70);
     U.setSpacing(c, 0);
 
@@ -276,6 +317,9 @@
     c.fillStyle = '#374151';
     c.font = U.font(700, 32);
     c.fillText('Digite o número e aperte CONFIRMA', cx, y + 270 + bh + 62);
+
+    const logo = logoInfo(d);
+    if (logo) Partidos.draw(c, logo.img, logo.p, x + w - 150, y + 24, 120, 90);
 
     if (d.legal) {
       c.fillStyle = '#6b7280';
@@ -533,7 +577,17 @@
     if (e.target.id === 'c-ano') e.target.value = U.onlyDigits(e.target.value, 4);
     render();
   });
-  U.$('#c-cargo').addEventListener('change', () => { atualizarDicaNumero(); render(); });
+  U.$('#c-cargo').addEventListener('change', () => {
+    atualizarDicaNumero();
+    const p = partidoAtual();
+    if (p) U.$('#c-num').value = Partidos.numeroComPrefixo(U.$('#c-num').value, p, CARGOS[U.$('#c-cargo').value].digitos);
+    render();
+  });
+  U.$('#c-pid').addEventListener('change', aplicarPartido);
+  U.$('#c-logo').addEventListener('change', async e => {
+    try { state.logoCustom = e.target.files[0] ? await U.loadImage(e.target.files[0]) : null; } catch (err) { U.toast(err.message); }
+    render();
+  });
   U.$$('.swatch').forEach(s => s.addEventListener('click', () => {
     U.$('#c-cor').value = s.dataset.color;
     render();
@@ -574,6 +628,12 @@
   window.addEventListener('hashchange', () => location.reload());
 
   /* ---------- início ---------- */
+  Partidos.fillSelect(U.$('#c-pid'));
+  const pidHash = U.hashParam('p');
+  if (pidHash && Partidos.get(pidHash)) {
+    U.$('#c-pid').value = pidHash;
+    aplicarPartido();
+  }
   const shared = U.hashParam('c');
   if (shared) {
     const d = U.decode(shared);
