@@ -71,7 +71,9 @@
           </div>
 
           <div id="fields-box">
-            <div class="card-section">
+            <div class="card-section tse" id="tse-box" style="border-radius:0;border-top:1px solid var(--line)"></div>
+            <p class="divider-label">ou preencha manualmente</p>
+            <div class="card-section" style="border-top:0">
               <h2 class="card-title"><span class="n">2</span>Dados</h2>
               <div class="field">
                 <label for="m-pid">Partido</label>
@@ -110,6 +112,11 @@
                   <label for="m-slogan">Frase / hashtag</label>
                   <input type="text" id="m-slogan" maxlength="40" value="#EuApoio">
                 </div>
+              </div>
+              <div class="field">
+                <label for="m-legal">Texto legal <span style="color:var(--muted);font-weight:400">(opcional)</span></label>
+                <input type="text" id="m-legal" maxlength="240" placeholder="Coligação/federação · CNPJ">
+                <small>Aparece em letra pequena no rodapé da moldura.</small>
               </div>
             </div>
 
@@ -189,6 +196,7 @@
 
   <script src="js/common.js"></script>
   <script src="js/partidos.js"></script>
+  <script src="js/tse.js"></script>
   <script src="js/moldura.js"></script>
 </body>
 </html>

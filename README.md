@@ -16,6 +16,20 @@ Site estático (HTML + CSS + JavaScript puro, sem servidor) para campanhas polí
 Privacidade: tudo é processado no navegador. Fotos não são enviadas a nenhum servidor; os dados do
 candidato vão dentro do próprio link (depois do `#`).
 
+## Candidaturas do TSE (preenchimento automático)
+
+Na colinha e na moldura, o painel **“Puxar candidatura do TSE”** busca por eleição, estado, município
+e nome/número e preenche tudo: nome de urna, número, cargo, partido (cores e logo), cidade e o
+**texto legal** (coligação/federação com os partidos + CNPJ da campanha).
+
+- Fonte: [Portal de Dados Abertos do TSE](https://dadosabertos.tse.jus.br) — arquivo `consulta_cand_<ano>.zip`.
+- `scripts/atualizar_candidatos.py` baixa e gera `data/candidatos/` (só dados públicos de campanha;
+  CPF, e-mail, título e data de nascimento **não** são exportados).
+- O workflow `.github/workflows/atualizar-candidatos.yml` roda **todo dia** e faz commit quando há mudança.
+  Também pode ser rodado manualmente em *Actions → Atualizar candidaturas do TSE → Run workflow*
+  (informe anos, ex.: `2028`). Para incluir uma eleição nova, rode com o ano ou edite `ANOS_PADRAO` no script.
+- Rodar localmente: `python3 scripts/atualizar_candidatos.py 2026 2024`
+
 ## Como publicar (grátis) no GitHub Pages
 
 1. No GitHub, abra **Settings → Pages**.

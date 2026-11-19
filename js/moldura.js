@@ -424,6 +424,33 @@
     },
   };
 
+  /** texto legal em letra pequena no rodapé (coligação/federação, CNPJ) */
+  function legalText(c, W, H, txt) {
+    if (!txt) return;
+    const u = W / 1080;
+    const size = (txt.length > 140 ? 15 : 18) * u;
+    c.font = U.font(600, size);
+    const maxW = W - (H > W ? 80 : 300) * u;
+    const words = txt.split(/\s+/), lines = [];
+    let line = '';
+    words.forEach(w => {
+      const t = line ? line + ' ' + w : w;
+      if (c.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t;
+    });
+    if (line) lines.push(line);
+    const shown = lines.slice(0, 3);
+    const lh = size * 1.3;
+    const bottom = H - 20 * u;
+    c.save();
+    c.textAlign = 'center';
+    c.textBaseline = 'alphabetic';
+    c.fillStyle = 'rgba(255,255,255,.92)';
+    c.shadowColor = 'rgba(0,0,0,.6)';
+    c.shadowBlur = 4 * u;
+    shown.forEach((l, i) => c.fillText(l, W / 2, bottom - (shown.length - 1 - i) * lh));
+    c.restore();
+  }
+
   /** etiqueta com a frase/hashtag, centralizada no topo */
   function slogan(c, W, d, y, maxW, u) {
     c.textAlign = 'center'; c.textBaseline = 'middle';
@@ -489,6 +516,7 @@
       ctx.clearRect(0, 0, W, H);
       drawPhoto(ctx, W, H);
       (TEMPLATES[state.cfg.t] || TEMPLATES.faixa)(ctx, W, H, state.cfg);
+      if (state.cfg.t !== 'custom') legalText(ctx, W, H, state.cfg.legal);
       canvas.classList.toggle('round', state.formato === 'perfil' && U.$('#m-round').checked);
     });
   }
@@ -508,6 +536,7 @@
       num: U.onlyDigits(v('m-num'), CARGOS[cargo].digitos),
       partido: v('m-partido'),
       slogan: v('m-slogan'),
+      legal: v('m-legal'),
       cor: U.$('#m-cor').value,
       cor2: U.$('#m-cor2').value,
     };
@@ -517,6 +546,7 @@
     const set = (id, val) => { if (val !== undefined) U.$('#' + id).value = val; };
     set('m-nome', cfg.nome); set('m-num', cfg.num); set('m-partido', cfg.partido);
     set('m-slogan', cfg.slogan);
+    set('m-legal', cfg.legal);
     if (CARGOS[cfg.cargo]) set('m-cargo', cfg.cargo);
     if (cfg.pid && Partidos.get(cfg.pid)) { set('m-pid', cfg.pid); carregarLogo(); }
     if (cfg.lg !== undefined) U.$('#m-showlogo').checked = !!cfg.lg;
@@ -694,8 +724,27 @@
   });
   window.addEventListener('hashchange', () => location.reload());
 
+  /* ---------- dados do TSE ---------- */
+  function aplicarTSE(c) {
+    const set = (id, v) => { U.$('#' + id).value = v; };
+    set('m-pid', c.pid || '');
+    set('m-cargo', c.cargo);
+    const inp = U.$('#m-num');
+    inp.maxLength = CARGOS[c.cargo].digitos;
+    set('m-num', c.num);
+    set('m-nome', c.nome);
+    set('m-partido', c.partido);
+    set('m-legal', c.legal);
+    const p = Partidos.get(c.pid);
+    if (p) { set('m-cor', p.cor); set('m-cor2', p.cor2); }
+    if (state.cfg.t === 'custom') setTemplate('partido');
+    lerForm();
+    carregarLogo();
+  }
+
   /* ---------- início ---------- */
   Partidos.fillSelect(U.$('#m-pid'));
+  TSE.mount(U.$('#tse-box'), aplicarTSE);
   const pidHash = U.hashParam('p');
   if (pidHash && Partidos.get(pidHash)) {
     U.$('#m-pid').value = pidHash;

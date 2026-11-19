@@ -323,3 +323,28 @@ body:not(.view-mode) .only-view { display: none !important; }
   #print-img.sheet { width: 100%; }
   @page { margin: 8mm; }
 }
+
+/* ---------- busca TSE ---------- */
+.tse { background: linear-gradient(#f0fdf4, var(--surface) 70%); border-radius: var(--r-lg) var(--r-lg) 0 0; }
+.tse .card-title .n .i { width: 13px; height: 13px; }
+.tse-search { position: relative; }
+.tse-search .i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.tse-search input { padding-left: 38px; }
+.tse-results { max-height: 300px; overflow-y: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); margin-bottom: 8px; }
+.tse-results:empty { display: none; }
+.tse-item {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; border: 0; border-top: 1px solid var(--line);
+  background: transparent; font: inherit; color: var(--text); padding: 9px 10px; cursor: pointer;
+}
+.tse-item:first-child { border-top: 0; }
+.tse-item:hover { background: var(--muted-bg); }
+.tse-item.active { background: var(--accent-soft); }
+.tse-num { min-width: 58px; height: 30px; padding: 0 6px; border-radius: 7px; display: grid; place-items: center; font-weight: 700; font-size: 13.5px; font-variant-numeric: tabular-nums; letter-spacing: .04em; flex: none; }
+.tse-info { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.tse-info b { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tse-info small { color: var(--muted); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tse-tag { font-size: 11px; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 2px 7px; border-radius: 999px; flex: none; }
+.tse-empty { padding: 12px; color: var(--muted); font-size: 13px; text-align: center; }
+.tse-src { margin: 0 0 14px; font-size: 12px; }
+.divider-label { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 12px; font-weight: 500; padding: 0 18px; margin: 4px 0 0; }
+.divider-label::before, .divider-label::after { content: ""; flex: 1; height: 1px; background: var(--line); }

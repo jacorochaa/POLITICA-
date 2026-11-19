@@ -245,7 +245,7 @@
     }
     if (d.legal) {
       c.globalAlpha = 0.85;
-      drawWrapped(c, d.legal, cx, H - (tall ? 70 : 48), W - 140, 22, 500, 2);
+      drawWrapped(c, d.legal, cx, H - (tall ? 64 : 40), W - 120, d.legal.length > 160 ? 19 : 22, 500, 3);
       c.globalAlpha = 1;
     }
   }
@@ -324,8 +324,7 @@
 
     if (d.legal) {
       c.fillStyle = '#6b7280';
-      U.fitFont(c, d.legal, inner, 22, 500, 14);
-      c.fillText(d.legal, cx, y + h - 34);
+      drawWrapped(c, d.legal, cx, y + h - 26, inner, d.legal.length > 120 ? 17 : 20, 500, 2);
     }
   }
 
@@ -628,8 +627,27 @@
   });
   window.addEventListener('hashchange', () => location.reload());
 
+  /* ---------- dados do TSE ---------- */
+  function aplicarTSE(c) {
+    const set = (id, v) => { U.$('#' + id).value = v; };
+    set('c-pid', c.pid || '');
+    set('c-cargo', c.cargo);
+    atualizarDicaNumero();
+    set('c-num', c.num);
+    set('c-nome', c.nome);
+    set('c-partido', c.partido);
+    set('c-ano', c.ano);
+    set('c-cid', c.cid);
+    set('c-legal', c.legal);
+    const p = Partidos.get(c.pid);
+    if (p) set('c-cor', p.cor);
+    carregarLogoPartido();
+    render();
+  }
+
   /* ---------- início ---------- */
   Partidos.fillSelect(U.$('#c-pid'));
+  TSE.mount(U.$('#tse-box'), aplicarTSE);
   const pidHash = U.hashParam('p');
   if (pidHash && Partidos.get(pidHash)) {
     U.$('#c-pid').value = pidHash;
