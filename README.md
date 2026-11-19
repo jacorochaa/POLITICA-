@@ -7,8 +7,9 @@ Site estático (HTML + CSS + JavaScript puro, sem servidor) para campanhas polí
     Formatos: **Feed 4:5** (1080×1350), **Stories 9:16** (1080×1920) e **folha A4 com 10 colinhas** para recortar.
   - **Link para eleitores:** quem abre o link vê a colinha do candidato, baixa/compartilha e pode **adicionar à própria colinha**.
   - **Eleitor:** monta a colinha completa na ordem da urna (municipal ou geral, DF, 2 vagas ao Senado). Fica salva no aparelho.
+- **Partidos** (`partidos.html`): os 30 partidos do TSE com número, cores e logo; atalhos para moldura e colinha de cada um.
 - **Gerador de Moldura** (`moldura.html`), estilo Twibbonize
-  - Modelos: **Faixa, Círculo, Selo, Moderno** ou **arte própria em PNG**.
+  - Modelos: **Partido, Faixa, Círculo, Selo, Moderno** ou **arte própria em PNG**.
   - O candidato configura e copia o **link para apoiadores**.
   - O apoiador envia a foto, **arrasta, dá zoom (pinça no celular) e gira**, e baixa em **Perfil 1:1** ou **Stories 9:16**.
 
@@ -35,8 +36,12 @@ e abra http://localhost:8000.
 index.html      página inicial
 colinha.html    gerador de colinha
 moldura.html    gerador de moldura
+partidos.html   galeria de partidos
 css/style.css   estilos
+img/icons.svg   ícones SVG (sprite)
+img/partidos/   logos dos partidos + CREDITOS.md
 js/common.js    utilidades (cargos, desenho, links, download, compartilhar)
+js/partidos.js  lista de partidos, cores e desenho das logos
 js/colinha.js   lógica e desenho das colinhas
 js/moldura.js   modelos de moldura e editor de foto
 ```

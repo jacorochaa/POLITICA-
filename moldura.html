@@ -3,174 +3,184 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Gerador de Moldura — Colinha & Moldura</title>
+  <title>Gerador de moldura · Colinha & Moldura</title>
   <meta name="description" content="Coloque a moldura do seu candidato na sua foto de perfil ou stories.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗳️</text></svg>">
+  <meta name="theme-color" content="#fafafa">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2318181b'/%3E%3Cg fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 15V9.5h10V15'/%3E%3Cpath d='m13.5 12 1.8 1.6 3.2-3.1'/%3E%3Crect x='7' y='15' width='18' height='10' rx='2'/%3E%3C/g%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="has-actions">
   <header class="topbar">
     <div class="wrap">
-      <a class="logo" href="index.html"><span class="mark">🗳️</span><span class="txt">Colinha&nbsp;&amp;&nbsp;Moldura</span></a>
+      <a class="brand" href="index.html"><span class="mark"><svg class="i"><use href="img/icons.svg#logo"/></svg></span><span class="txt">Colinha &amp; Moldura</span></a>
       <nav class="nav">
-        <a href="colinha.html">Colinha</a>
-        <a href="moldura.html" class="active">Moldura</a>
-        <a href="partidos.html">Partidos</a>
+        <a href="colinha.html"><svg class="i i-sm"><use href="img/icons.svg#colinha"/></svg><span>Colinha</span></a>
+        <a href="moldura.html" class="active"><svg class="i i-sm"><use href="img/icons.svg#moldura"/></svg><span>Moldura</span></a>
+        <a href="partidos.html"><svg class="i i-sm"><use href="img/icons.svg#flag"/></svg><span>Partidos</span></a>
       </nav>
     </div>
   </header>
 
   <main class="wrap">
     <div class="page-head only-edit">
-      <h1>Gerador de Moldura</h1>
-      <p>Monte a moldura da campanha, copie o link e mande para os apoiadores colocarem na foto.</p>
-    </div>
-
-    <div class="banner only-view">
       <div>
-        <h2 id="view-title">Moldura de apoio</h2>
-        <p>1. Envie sua foto &nbsp;·&nbsp; 2. Arraste e ajuste o zoom &nbsp;·&nbsp; 3. Baixe e poste!</p>
+        <h1>Gerador de moldura</h1>
+        <p>Monte a moldura, copie o link e envie para os apoiadores.</p>
       </div>
-      <a class="btn" href="moldura.html" id="btn-create-own">✏️ Criar minha moldura</a>
     </div>
 
-    <div class="editor">
-      <div>
-        <!-- ===== CONFIGURAÇÃO DA MOLDURA (candidato) ===== -->
-        <form class="panel only-edit" id="form-moldura" autocomplete="off" onsubmit="return false">
-          <h2>1. Modelo da moldura</h2>
-          <div class="templates" id="templates">
-            <button type="button" class="tpl" data-t="partido"><span class="ico">🏛️</span>Partido</button>
-            <button type="button" class="tpl active" data-t="faixa"><span class="ico">▬</span>Faixa</button>
-            <button type="button" class="tpl" data-t="circulo"><span class="ico">◯</span>Círculo</button>
-            <button type="button" class="tpl" data-t="selo"><span class="ico">✪</span>Selo</button>
-            <button type="button" class="tpl" data-t="moderno"><span class="ico">◢</span>Moderno</button>
-            <button type="button" class="tpl" data-t="custom"><span class="ico">🖼️</span>Minha arte</button>
-          </div>
+    <div class="viewbar only-view">
+      <div class="who">
+        <div class="badge"><svg class="i i-lg"><use href="img/icons.svg#moldura"/></svg></div>
+        <div>
+          <h2 id="view-title">Moldura de apoio</h2>
+          <ol class="steps-inline">
+            <li><b>1</b>Escolha sua foto</li>
+            <li><b>2</b>Arraste e ajuste</li>
+            <li><b>3</b>Baixe e publique</li>
+          </ol>
+        </div>
+      </div>
+      <a class="btn ghost" href="moldura.html" id="btn-create-own"><svg class="i"><use href="img/icons.svg#edit"/></svg>Criar minha moldura</a>
+    </div>
 
-          <div id="custom-box" class="hidden" style="margin-top:14px">
-            <div class="field">
-              <label for="m-custom">Arte da moldura (PNG com fundo transparente)</label>
-              <input type="file" id="m-custom" accept="image/png,image/webp">
-              <small>Use 1080×1080 (perfil) ou 1080×1920 (stories). A arte própria não vai no link — envie o arquivo PNG para os apoiadores ou use um dos modelos.</small>
+    <div class="editor" style="margin-top:16px">
+      <div>
+        <!-- ===== CONFIGURAÇÃO (candidato) ===== -->
+        <form class="card only-edit" id="form-moldura" autocomplete="off" onsubmit="return false">
+          <div class="card-section">
+            <h2 class="card-title"><span class="n">1</span>Modelo</h2>
+            <div class="templates" id="templates">
+              <button type="button" class="tpl" data-t="partido"><svg><use href="img/icons.svg#tpl-partido"/></svg>Partido</button>
+              <button type="button" class="tpl active" data-t="faixa"><svg><use href="img/icons.svg#tpl-faixa"/></svg>Faixa</button>
+              <button type="button" class="tpl" data-t="circulo"><svg><use href="img/icons.svg#tpl-circulo"/></svg>Círculo</button>
+              <button type="button" class="tpl" data-t="selo"><svg><use href="img/icons.svg#tpl-selo"/></svg>Selo</button>
+              <button type="button" class="tpl" data-t="moderno"><svg><use href="img/icons.svg#tpl-moderno"/></svg>Moderno</button>
+              <button type="button" class="tpl" data-t="custom"><svg><use href="img/icons.svg#tpl-custom"/></svg>Minha arte</button>
+            </div>
+            <div id="custom-box" class="hidden">
+              <div class="field">
+                <span class="label">Arte da moldura (PNG transparente)</span>
+                <label class="file"><svg class="i"><use href="img/icons.svg#upload"/></svg><span class="name">Enviar arte 1080×1080 ou 1080×1920</span><input type="file" id="m-custom" accept="image/png,image/webp"></label>
+                <small>A arte própria não vai no link: envie o PNG aos apoiadores ou use um dos modelos.</small>
+              </div>
             </div>
           </div>
 
           <div id="fields-box">
-            <h2 style="margin-top:20px">2. Dados</h2>
-            <div class="field">
-              <label for="m-pid">Partido</label>
-              <select id="m-pid"></select>
-              <small>Aplica as cores, a logo e o número do partido. <a href="partidos.html">Ver todos</a></small>
-            </div>
-            <div class="field">
-              <label for="m-nome">Nome do candidato</label>
-              <input type="text" id="m-nome" maxlength="40" value="Maria da Saúde">
-            </div>
-            <div class="row">
+            <div class="card-section">
+              <h2 class="card-title"><span class="n">2</span>Dados</h2>
               <div class="field">
-                <label for="m-cargo">Cargo</label>
-                <select id="m-cargo">
-                  <option value="vereador">Vereador(a)</option>
-                  <option value="prefeito">Prefeito(a)</option>
-                  <option value="dep_federal">Deputado(a) Federal</option>
-                  <option value="dep_estadual">Deputado(a) Estadual</option>
-                  <option value="dep_distrital">Deputado(a) Distrital</option>
-                  <option value="senador">Senador(a)</option>
-                  <option value="governador">Governador(a)</option>
-                  <option value="presidente">Presidente</option>
-                </select>
+                <label for="m-pid">Partido</label>
+                <select id="m-pid"></select>
+                <small>Aplica cores, logo e número do partido. <a href="partidos.html">Ver partidos</a></small>
               </div>
               <div class="field">
-                <label for="m-num">Número</label>
-                <input type="tel" inputmode="numeric" class="num" id="m-num" value="12345">
+                <label for="m-nome">Nome do candidato</label>
+                <input type="text" id="m-nome" maxlength="40" value="Maria da Saúde">
               </div>
-            </div>
-            <div class="row">
-              <div class="field">
-                <label for="m-partido">Partido</label>
-                <input type="text" id="m-partido" maxlength="30" value="PARTIDO">
+              <div class="row">
+                <div class="field">
+                  <label for="m-cargo">Cargo</label>
+                  <select id="m-cargo">
+                    <option value="vereador">Vereador(a)</option>
+                    <option value="prefeito">Prefeito(a)</option>
+                    <option value="dep_federal">Deputado(a) Federal</option>
+                    <option value="dep_estadual">Deputado(a) Estadual</option>
+                    <option value="dep_distrital">Deputado(a) Distrital</option>
+                    <option value="senador">Senador(a)</option>
+                    <option value="governador">Governador(a)</option>
+                    <option value="presidente">Presidente</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="m-num">Número</label>
+                  <input type="tel" inputmode="numeric" class="num" id="m-num" value="12345">
+                </div>
               </div>
-              <div class="field">
-                <label for="m-slogan">Frase / hashtag</label>
-                <input type="text" id="m-slogan" maxlength="40" value="#EuApoio">
-              </div>
-            </div>
-            <div class="row">
-              <div class="field">
-                <label for="m-cor">Cor principal</label>
-                <input type="color" id="m-cor" value="#1d4ed8">
-              </div>
-              <div class="field">
-                <label for="m-cor2">Cor de destaque</label>
-                <input type="color" id="m-cor2" value="#facc15">
+              <div class="row">
+                <div class="field">
+                  <label for="m-partido">Sigla</label>
+                  <input type="text" id="m-partido" maxlength="30" value="PARTIDO">
+                </div>
+                <div class="field">
+                  <label for="m-slogan">Frase / hashtag</label>
+                  <input type="text" id="m-slogan" maxlength="40" value="#EuApoio">
+                </div>
               </div>
             </div>
-            <div class="field">
-              <span class="label">Combinações prontas</span>
-              <div class="swatches" id="combos">
-                <button type="button" class="swatch" style="background:linear-gradient(135deg,#1d4ed8 50%,#facc15 50%)" data-c="#1d4ed8,#facc15" aria-label="azul e amarelo"></button>
-                <button type="button" class="swatch" style="background:linear-gradient(135deg,#dc2626 50%,#ffffff 50%)" data-c="#dc2626,#ffffff" aria-label="vermelho e branco"></button>
-                <button type="button" class="swatch" style="background:linear-gradient(135deg,#15803d 50%,#facc15 50%)" data-c="#15803d,#facc15" aria-label="verde e amarelo"></button>
-                <button type="button" class="swatch" style="background:linear-gradient(135deg,#ea580c 50%,#1e3a8a 50%)" data-c="#ea580c,#1e3a8a" aria-label="laranja e azul"></button>
-                <button type="button" class="swatch" style="background:linear-gradient(135deg,#7c3aed 50%,#f472b6 50%)" data-c="#7c3aed,#f472b6" aria-label="roxo e rosa"></button>
-                <button type="button" class="swatch" style="background:linear-gradient(135deg,#0e7490 50%,#a3e635 50%)" data-c="#0e7490,#a3e635" aria-label="ciano e verde-limão"></button>
-                <button type="button" class="swatch" style="background:linear-gradient(135deg,#111827 50%,#f59e0b 50%)" data-c="#111827,#f59e0b" aria-label="preto e dourado"></button>
+
+            <div class="card-section">
+              <h2 class="card-title"><span class="n">3</span>Cores e logo</h2>
+              <div class="field">
+                <span class="label">Cores (principal e destaque)</span>
+                <div class="color-row">
+                  <input type="color" id="m-cor" value="#1d4ed8" aria-label="Cor principal">
+                  <input type="color" id="m-cor2" value="#facc15" aria-label="Cor de destaque">
+                  <div class="swatches" id="combos">
+                    <button type="button" class="swatch" style="background:linear-gradient(135deg,#1d4ed8 50%,#facc15 50%)" data-c="#1d4ed8,#facc15" aria-label="Azul e amarelo"></button>
+                    <button type="button" class="swatch" style="background:linear-gradient(135deg,#dc2626 50%,#ffffff 50%)" data-c="#dc2626,#ffffff" aria-label="Vermelho e branco"></button>
+                    <button type="button" class="swatch" style="background:linear-gradient(135deg,#15803d 50%,#facc15 50%)" data-c="#15803d,#facc15" aria-label="Verde e amarelo"></button>
+                    <button type="button" class="swatch" style="background:linear-gradient(135deg,#ea580c 50%,#1e3a8a 50%)" data-c="#ea580c,#1e3a8a" aria-label="Laranja e azul"></button>
+                    <button type="button" class="swatch" style="background:linear-gradient(135deg,#7c3aed 50%,#f472b6 50%)" data-c="#7c3aed,#f472b6" aria-label="Roxo e rosa"></button>
+                    <button type="button" class="swatch" style="background:linear-gradient(135deg,#18181b 50%,#f59e0b 50%)" data-c="#18181b,#f59e0b" aria-label="Preto e dourado"></button>
+                  </div>
+                </div>
+              </div>
+              <div class="field">
+                <span class="label">Logo do partido</span>
+                <label class="file"><svg class="i"><use href="img/icons.svg#upload"/></svg><span class="name">Enviar logo oficial (PNG)</span><input type="file" id="m-logo" accept="image/png,image/webp,image/jpeg,image/svg+xml"></label>
+                <label class="switch">Mostrar logo na moldura <input type="checkbox" id="m-showlogo" checked></label>
               </div>
             </div>
           </div>
 
-            <div class="field">
-              <label for="m-logo">Logo do partido (opcional)</label>
-              <input type="file" id="m-logo" accept="image/png,image/webp,image/jpeg,image/svg+xml">
-              <small>Substitui a logo do site só neste aparelho (não vai no link).</small>
-              <label class="check"><input type="checkbox" id="m-showlogo" checked> Mostrar logo na moldura</label>
-            </div>
-          <h2 style="margin-top:8px">3. Compartilhe</h2>
-          <button type="button" class="btn block" id="btn-link">🔗 Copiar link para apoiadores</button>
-          <p style="color:var(--muted);font-size:.85rem;margin:8px 0 0">Quem abrir o link vê só a sua moldura e envia a própria foto.</p>
+          <div class="card-section" style="padding-bottom:18px">
+            <h2 class="card-title"><span class="n">4</span>Compartilhar</h2>
+            <button type="button" class="btn accent block" id="btn-link"><svg class="i"><use href="img/icons.svg#link"/></svg>Copiar link para apoiadores</button>
+            <p class="hint">Quem abrir o link vê só a moldura e envia a própria foto.</p>
+          </div>
         </form>
 
-        <!-- ===== FOTO DO APOIADOR ===== -->
-        <div class="panel hidden" id="panel-foto">
-          <h2>Ajuste sua foto</h2>
-          <div id="adjust">
+        <!-- ===== AJUSTE DA FOTO ===== -->
+        <div class="card hidden" id="panel-foto">
+          <div class="card-section">
+            <h2 class="card-title">Ajustar foto</h2>
             <div class="field">
-              <label for="m-zoom">Zoom</label>
+              <div class="range-head"><label for="m-zoom">Zoom</label></div>
               <input type="range" id="m-zoom" min="1" max="4" step="0.01" value="1">
             </div>
             <div class="field">
-              <label for="m-rot">Girar</label>
+              <div class="range-head"><label for="m-rot">Girar</label></div>
               <input type="range" id="m-rot" min="-180" max="180" step="1" value="0">
             </div>
-            <div class="btns">
-              <button type="button" class="btn secondary" id="btn-reset">↺ Centralizar</button>
+            <div class="field">
+              <button type="button" class="btn ghost" id="btn-reset"><svg class="i"><use href="img/icons.svg#rotate"/></svg>Centralizar</button>
+              <p class="hint">Arraste a foto na prévia. No celular, use dois dedos para dar zoom.</p>
             </div>
-            <p style="color:var(--muted);font-size:.85rem;margin:10px 0 0">Dica: arraste a foto na prévia para posicionar. No celular, use dois dedos para dar zoom.</p>
           </div>
         </div>
       </div>
 
       <!-- ===== PRÉVIA ===== -->
       <div class="preview-wrap">
-        <div class="preview-tools">
+        <div class="preview-bar">
           <div class="seg" id="formatos">
             <button data-f="perfil" class="active">Perfil 1:1</button>
             <button data-f="stories">Stories 9:16</button>
           </div>
-          <label class="check" id="round-toggle"><input type="checkbox" id="m-round"> Ver recorte redondo</label>
+          <label class="switch" id="round-toggle" style="gap:10px">Recorte redondo <input type="checkbox" id="m-round"></label>
         </div>
         <div class="preview-box"><canvas id="preview" width="1080" height="1080" aria-label="Prévia da moldura"></canvas></div>
         <input type="file" id="m-foto" accept="image/*" class="hidden">
-        <div class="btns" style="margin-top:14px">
-          <label class="btn ok" for="m-foto" style="cursor:pointer" id="btn-foto">📷 Escolher minha foto</label>
-          <button class="btn" id="btn-download">⬇️ Baixar imagem</button>
-          <button class="btn secondary" id="btn-share">📲 Compartilhar</button>
+        <div class="btns actions">
+          <label class="btn accent" for="m-foto" id="btn-foto"><svg class="i"><use href="img/icons.svg#camera"/></svg><span id="btn-foto-txt">Escolher foto</span></label>
+          <button class="btn" id="btn-download"><svg class="i"><use href="img/icons.svg#download"/></svg>Baixar</button>
+          <button class="btn ghost" id="btn-share"><svg class="i"><use href="img/icons.svg#share"/></svg>Compartilhar</button>
         </div>
-        <p class="only-edit" style="color:var(--muted);font-size:.85rem">Teste a moldura com uma foto antes de mandar o link.</p>
       </div>
     </div>
   </main>

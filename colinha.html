@@ -3,191 +3,216 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Gerador de Colinha — Colinha & Moldura</title>
+  <title>Gerador de colinha · Colinha & Moldura</title>
   <meta name="description" content="Gere a colinha do eleitor com nome e número do candidato. Baixe, compartilhe ou imprima.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗳️</text></svg>">
+  <meta name="theme-color" content="#fafafa">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2318181b'/%3E%3Cg fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 15V9.5h10V15'/%3E%3Cpath d='m13.5 12 1.8 1.6 3.2-3.1'/%3E%3Crect x='7' y='15' width='18' height='10' rx='2'/%3E%3C/g%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="has-actions">
   <header class="topbar">
     <div class="wrap">
-      <a class="logo" href="index.html"><span class="mark">🗳️</span><span class="txt">Colinha&nbsp;&amp;&nbsp;Moldura</span></a>
+      <a class="brand" href="index.html"><span class="mark"><svg class="i"><use href="img/icons.svg#logo"/></svg></span><span class="txt">Colinha &amp; Moldura</span></a>
       <nav class="nav">
-        <a href="colinha.html" class="active">Colinha</a>
-        <a href="moldura.html">Moldura</a>
-        <a href="partidos.html">Partidos</a>
+        <a href="colinha.html" class="active"><svg class="i i-sm"><use href="img/icons.svg#colinha"/></svg><span>Colinha</span></a>
+        <a href="moldura.html"><svg class="i i-sm"><use href="img/icons.svg#moldura"/></svg><span>Moldura</span></a>
+        <a href="partidos.html"><svg class="i i-sm"><use href="img/icons.svg#flag"/></svg><span>Partidos</span></a>
       </nav>
     </div>
   </header>
 
   <main class="wrap">
     <div class="page-head only-edit">
-      <h1>Gerador de Colinha</h1>
-      <p>Crie a colinha do candidato ou monte a sua colinha completa para levar no dia da eleição.</p>
+      <div>
+        <h1>Gerador de colinha</h1>
+        <p>Crie a colinha do candidato ou monte a sua para o dia da eleição.</p>
+      </div>
     </div>
 
     <!-- aparece quando alguém abre o link de um candidato -->
-    <div class="banner only-view" id="view-banner">
-      <div>
-        <h2 id="view-title">Colinha do candidato</h2>
-        <p>Baixe, compartilhe ou adicione à sua colinha completa.</p>
+    <div class="viewbar only-view">
+      <div class="who">
+        <div class="badge"><svg class="i i-lg"><use href="img/icons.svg#colinha"/></svg></div>
+        <div>
+          <h2 id="view-title">Colinha do candidato</h2>
+          <p>Baixe, compartilhe ou adicione à sua colinha completa.</p>
+        </div>
       </div>
-      <div class="btns">
-        <button class="btn" id="btn-add-mine">➕ Adicionar à minha colinha</button>
-      </div>
+      <button class="btn" id="btn-add-mine"><svg class="i"><use href="img/icons.svg#plus"/></svg>Adicionar à minha colinha</button>
     </div>
 
-    <div class="tabs" role="tablist">
-      <button class="active" data-mode="candidato" role="tab">🎤 Colinha do candidato</button>
-      <button data-mode="eleitor" role="tab">🙋 Minha colinha (eleitor)</button>
+    <div class="seg tabs" role="tablist">
+      <button class="active" data-mode="candidato" role="tab"><svg class="i i-sm"><use href="img/icons.svg#user"/></svg>Candidato</button>
+      <button data-mode="eleitor" role="tab"><svg class="i i-sm"><use href="img/icons.svg#list-check"/></svg>Eleitor</button>
     </div>
 
     <div class="editor">
       <div>
         <!-- ===== CANDIDATO ===== -->
-        <form class="panel" id="form-candidato" autocomplete="off" onsubmit="return false">
-          <div class="only-view" style="margin-bottom:12px">
-            <button type="button" class="btn secondary block" id="btn-edit">✏️ Criar uma colinha para outro candidato</button>
+        <form class="card" id="form-candidato" autocomplete="off" onsubmit="return false">
+          <div class="card-section only-view">
+            <button type="button" class="btn ghost block" id="btn-edit" style="margin-bottom:14px"><svg class="i"><use href="img/icons.svg#edit"/></svg>Criar colinha para outro candidato</button>
           </div>
+
           <div class="only-edit">
-            <h2>Dados do candidato</h2>
-            <div class="field">
-              <label for="c-pid">Partido</label>
-              <select id="c-pid" name="pid"></select>
-              <small>Preenche sigla, cores, logo e o começo do número. <a href="partidos.html">Ver todos os partidos</a></small>
-            </div>
-            <div class="field">
-              <label for="c-nome">Nome na urna</label>
-              <input type="text" id="c-nome" name="nome" maxlength="40" placeholder="Ex.: Maria da Saúde" value="Maria da Saúde">
-            </div>
-            <div class="row">
+            <div class="card-section">
+              <h2 class="card-title"><span class="n">1</span>Partido e número</h2>
               <div class="field">
-                <label for="c-cargo">Cargo</label>
-                <select id="c-cargo" name="cargo">
-                  <optgroup label="Eleições municipais">
-                    <option value="vereador">Vereador(a)</option>
-                    <option value="prefeito">Prefeito(a)</option>
-                  </optgroup>
-                  <optgroup label="Eleições gerais">
-                    <option value="dep_federal">Deputado(a) Federal</option>
-                    <option value="dep_estadual">Deputado(a) Estadual</option>
-                    <option value="dep_distrital">Deputado(a) Distrital</option>
-                    <option value="senador">Senador(a)</option>
-                    <option value="governador">Governador(a)</option>
-                    <option value="presidente">Presidente</option>
-                  </optgroup>
-                </select>
+                <label for="c-pid">Partido</label>
+                <select id="c-pid" name="pid"></select>
+                <small>Preenche sigla, cores, logo e o início do número. <a href="partidos.html">Ver partidos</a></small>
+              </div>
+              <div class="row">
+                <div class="field">
+                  <label for="c-cargo">Cargo</label>
+                  <select id="c-cargo" name="cargo">
+                    <optgroup label="Eleições municipais">
+                      <option value="vereador">Vereador(a)</option>
+                      <option value="prefeito">Prefeito(a)</option>
+                    </optgroup>
+                    <optgroup label="Eleições gerais">
+                      <option value="dep_federal">Deputado(a) Federal</option>
+                      <option value="dep_estadual">Deputado(a) Estadual</option>
+                      <option value="dep_distrital">Deputado(a) Distrital</option>
+                      <option value="senador">Senador(a)</option>
+                      <option value="governador">Governador(a)</option>
+                      <option value="presidente">Presidente</option>
+                    </optgroup>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="c-num">Número</label>
+                  <input type="tel" inputmode="numeric" class="num" id="c-num" name="num" value="12345">
+                  <small id="c-num-hint">5 dígitos</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-section">
+              <h2 class="card-title"><span class="n">2</span>Candidato</h2>
+              <div class="field">
+                <label for="c-nome">Nome na urna</label>
+                <input type="text" id="c-nome" name="nome" maxlength="40" placeholder="Ex.: Maria da Saúde" value="Maria da Saúde">
+              </div>
+              <div class="row">
+                <div class="field">
+                  <label for="c-partido">Sigla do partido</label>
+                  <input type="text" id="c-partido" name="partido" maxlength="30" placeholder="Ex.: PXX" value="PARTIDO">
+                </div>
+                <div class="field">
+                  <label for="c-ano">Ano da eleição</label>
+                  <input type="tel" inputmode="numeric" id="c-ano" name="ano" maxlength="4" value="2028">
+                </div>
               </div>
               <div class="field">
-                <label for="c-num">Número</label>
-                <input type="tel" inputmode="numeric" class="num" id="c-num" name="num" value="12345">
-                <small id="c-num-hint">5 dígitos</small>
-              </div>
-            </div>
-            <div class="row">
-              <div class="field">
-                <label for="c-partido">Partido (sigla)</label>
-                <input type="text" id="c-partido" name="partido" maxlength="30" placeholder="Ex.: PXX" value="PARTIDO">
+                <label for="c-cid">Cidade / UF</label>
+                <input type="text" id="c-cid" name="cid" maxlength="40" placeholder="Ex.: Campinas - SP">
               </div>
               <div class="field">
-                <label for="c-ano">Ano da eleição</label>
-                <input type="tel" inputmode="numeric" id="c-ano" name="ano" maxlength="4" value="2028">
+                <label for="c-slogan">Slogan <span style="color:var(--muted);font-weight:400">(opcional)</span></label>
+                <input type="text" id="c-slogan" name="slogan" maxlength="60" placeholder="Ex.: Saúde em primeiro lugar">
               </div>
             </div>
-            <div class="field">
-              <label for="c-cid">Cidade / UF</label>
-              <input type="text" id="c-cid" name="cid" maxlength="40" placeholder="Ex.: Campinas - SP">
-            </div>
-            <div class="field">
-              <label for="c-slogan">Slogan (opcional)</label>
-              <input type="text" id="c-slogan" name="slogan" maxlength="60" placeholder="Ex.: Saúde em primeiro lugar!">
-            </div>
-            <div class="field">
-              <span class="label">Cor da campanha</span>
-              <div class="swatches" data-target="c-cor">
-                <button type="button" class="swatch" style="background:#1d4ed8" data-color="#1d4ed8" aria-label="azul"></button>
-                <button type="button" class="swatch" style="background:#dc2626" data-color="#dc2626" aria-label="vermelho"></button>
-                <button type="button" class="swatch" style="background:#16a34a" data-color="#16a34a" aria-label="verde"></button>
-                <button type="button" class="swatch" style="background:#f59e0b" data-color="#f59e0b" aria-label="amarelo"></button>
-                <button type="button" class="swatch" style="background:#ea580c" data-color="#ea580c" aria-label="laranja"></button>
-                <button type="button" class="swatch" style="background:#7c3aed" data-color="#7c3aed" aria-label="roxo"></button>
-                <button type="button" class="swatch" style="background:#0891b2" data-color="#0891b2" aria-label="ciano"></button>
-                <button type="button" class="swatch" style="background:#111827" data-color="#111827" aria-label="preto"></button>
+
+            <div class="card-section">
+              <h2 class="card-title"><span class="n">3</span>Visual</h2>
+              <div class="field">
+                <span class="label">Cor da campanha</span>
+                <div class="color-row">
+                  <input type="color" id="c-cor" name="cor" value="#1d4ed8" aria-label="Escolher cor">
+                  <div class="swatches">
+                    <button type="button" class="swatch" style="background:#1d4ed8" data-color="#1d4ed8" aria-label="Azul"></button>
+                    <button type="button" class="swatch" style="background:#dc2626" data-color="#dc2626" aria-label="Vermelho"></button>
+                    <button type="button" class="swatch" style="background:#15803d" data-color="#15803d" aria-label="Verde"></button>
+                    <button type="button" class="swatch" style="background:#f59e0b" data-color="#f59e0b" aria-label="Amarelo"></button>
+                    <button type="button" class="swatch" style="background:#ea580c" data-color="#ea580c" aria-label="Laranja"></button>
+                    <button type="button" class="swatch" style="background:#7c3aed" data-color="#7c3aed" aria-label="Roxo"></button>
+                    <button type="button" class="swatch" style="background:#0891b2" data-color="#0891b2" aria-label="Ciano"></button>
+                    <button type="button" class="swatch" style="background:#18181b" data-color="#18181b" aria-label="Preto"></button>
+                  </div>
+                </div>
               </div>
-              <input type="color" id="c-cor" name="cor" value="#1d4ed8" aria-label="Escolher outra cor">
+              <div class="field">
+                <span class="label">Foto do candidato <span style="color:var(--muted);font-weight:400">(opcional)</span></span>
+                <label class="file"><svg class="i"><use href="img/icons.svg#camera"/></svg><span class="name">Escolher foto</span><input type="file" id="c-foto" accept="image/*"></label>
+                <small>Fica só no seu aparelho e não vai no link.</small>
+              </div>
+              <div class="field">
+                <span class="label">Logo do partido</span>
+                <label class="file"><svg class="i"><use href="img/icons.svg#upload"/></svg><span class="name">Enviar logo oficial (PNG)</span><input type="file" id="c-logo" accept="image/png,image/webp,image/jpeg,image/svg+xml"></label>
+                <label class="switch">Mostrar logo na colinha <input type="checkbox" id="c-showlogo" checked></label>
+              </div>
             </div>
-            <div class="field">
-              <label for="c-foto">Foto do candidato (opcional)</label>
-              <input type="file" id="c-foto" accept="image/*">
-              <small>A foto fica só no seu aparelho e não vai no link compartilhado.</small>
-            </div>
-            <div class="field">
-              <label for="c-logo">Logo do partido (opcional)</label>
-              <input type="file" id="c-logo" accept="image/png,image/webp,image/jpeg,image/svg+xml">
-              <small>Envie a logo oficial em PNG para substituir a do site (não vai no link).</small>
-              <label class="check"><input type="checkbox" id="c-showlogo" checked> Mostrar logo na colinha</label>
-            </div>
-            <div class="field">
-              <label for="c-legal">Texto legal (opcional)</label>
-              <input type="text" id="c-legal" name="legal" maxlength="140" placeholder="Ex.: Coligação X (PXX/PYY) · CNPJ 00.000.000/0001-00">
-              <small>Coligação/federação, CNPJ, tiragem etc. Aparece em letra pequena no rodapé.</small>
+
+            <div class="card-section">
+              <h2 class="card-title"><span class="n">4</span>Texto legal</h2>
+              <div class="field">
+                <label for="c-legal">Rodapé <span style="color:var(--muted);font-weight:400">(opcional)</span></label>
+                <input type="text" id="c-legal" name="legal" maxlength="140" placeholder="Coligação X (PXX/PYY) · CNPJ 00.000.000/0001-00">
+                <small>Coligação/federação, CNPJ, tiragem etc. Aparece em letra pequena.</small>
+              </div>
             </div>
           </div>
         </form>
 
         <!-- ===== ELEITOR ===== -->
-        <form class="panel hidden" id="form-eleitor" autocomplete="off" onsubmit="return false">
-          <h2>Minha colinha</h2>
-          <div class="row">
-            <div class="field">
-              <label for="e-eleicao">Eleição</label>
-              <select id="e-eleicao">
-                <option value="municipal">Municipal (vereador e prefeito)</option>
-                <option value="geral">Geral (deputados, senador, governador, presidente)</option>
-              </select>
+        <form class="card hidden" id="form-eleitor" autocomplete="off" onsubmit="return false">
+          <div class="card-section">
+            <h2 class="card-title"><span class="n">1</span>Eleição</h2>
+            <div class="row">
+              <div class="field">
+                <label for="e-eleicao">Tipo</label>
+                <select id="e-eleicao">
+                  <option value="municipal">Municipal</option>
+                  <option value="geral">Geral</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="e-ano">Ano</label>
+                <input type="tel" inputmode="numeric" id="e-ano" maxlength="4" value="2028">
+              </div>
             </div>
-            <div class="field">
-              <label for="e-ano">Ano</label>
-              <input type="tel" inputmode="numeric" id="e-ano" maxlength="4" value="2028">
+            <div class="field" id="e-opts-geral">
+              <label class="switch">Voto no Distrito Federal <input type="checkbox" id="e-df"></label>
+              <label class="switch">2 vagas para o Senado <input type="checkbox" id="e-sen2"></label>
             </div>
           </div>
-          <div class="field" id="e-opts-geral">
-            <label class="check"><input type="checkbox" id="e-df"> Voto no Distrito Federal (deputado distrital)</label>
-            <label class="check"><input type="checkbox" id="e-sen2"> Esta eleição tem 2 vagas para o Senado</label>
-          </div>
-          <div id="e-rows"></div>
-          <div class="notice info" style="margin-bottom:0">
-            Deixe em branco o que ainda não decidiu — na versão impressa as caixinhas ficam vazias para preencher à mão.
-            Seus dados ficam salvos só neste aparelho.
+          <div class="card-section">
+            <h2 class="card-title"><span class="n">2</span>Meus candidatos</h2>
+            <div id="e-rows"></div>
+            <p class="hint" style="margin:4px 0 16px">Deixe em branco o que ainda não decidiu. Na versão impressa, dá para preencher à mão. Fica salvo só neste aparelho.</p>
           </div>
         </form>
       </div>
 
       <!-- ===== PRÉVIA ===== -->
       <div class="preview-wrap">
-        <div class="preview-tools">
+        <div class="preview-bar">
           <div class="seg" id="formatos">
             <button data-f="feed" class="active">Feed 4:5</button>
             <button data-f="stories">Stories 9:16</button>
-            <button data-f="folha">Folha p/ imprimir</button>
+            <button data-f="folha">Folha A4</button>
           </div>
         </div>
         <div class="preview-box"><canvas id="preview" width="1080" height="1350" aria-label="Prévia da colinha"></canvas></div>
-        <div class="btns" style="margin-top:14px">
-          <button class="btn" id="btn-download">⬇️ Baixar imagem</button>
-          <button class="btn ok" id="btn-share">📲 Compartilhar</button>
-          <button class="btn secondary" id="btn-print">🖨️ Imprimir</button>
-          <button class="btn outline only-edit" id="btn-link">🔗 Copiar link para eleitores</button>
+        <div class="btns actions">
+          <button class="btn" id="btn-download"><svg class="i"><use href="img/icons.svg#download"/></svg>Baixar</button>
+          <button class="btn ghost" id="btn-share"><svg class="i"><use href="img/icons.svg#share"/></svg>Compartilhar</button>
+          <button class="btn ghost" id="btn-print"><svg class="i"><use href="img/icons.svg#printer"/></svg>Imprimir</button>
+          <button class="btn ghost only-edit" id="btn-link"><svg class="i"><use href="img/icons.svg#link"/></svg>Copiar link</button>
         </div>
-        <div class="notice">📵 O celular não pode entrar na cabine de votação. Imprima ou anote sua colinha em papel.</div>
+        <div class="note neutral">
+          <svg class="i"><use href="img/icons.svg#phone-off"/></svg>
+          <p>Celular não entra na cabine de votação. Imprima ou anote a colinha em papel.</p>
+        </div>
       </div>
     </div>
   </main>
 
-  <footer class="site">Tudo é gerado no seu aparelho — nenhuma foto ou dado é enviado a servidores.</footer>
+  <footer class="site">As imagens são geradas no seu aparelho. Nenhuma foto é enviada a servidores.</footer>
 
   <script src="js/common.js"></script>
   <script src="js/partidos.js"></script>

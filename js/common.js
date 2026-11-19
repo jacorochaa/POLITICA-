@@ -170,7 +170,7 @@ const U = {
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-    U.toast('Imagem baixada ✔');
+    U.toast('Imagem baixada');
   },
   async share(canvas, filename, text) {
     try {
@@ -203,6 +203,10 @@ const U = {
   },
 
   /* ---------- interface ---------- */
+  /** ícone SVG do sprite img/icons.svg */
+  icon(name, cls = 'i') {
+    return `<svg class="${cls}" aria-hidden="true"><use href="img/icons.svg#${name}"/></svg>`;
+  },
   toast(msg) {
     let t = U.$('#toast');
     if (!t) {
@@ -243,3 +247,17 @@ const U = {
     img.src = canvas.toDataURL('image/png');
   },
 };
+
+/* campos de arquivo: mostra o nome escolhido */
+document.addEventListener('change', e => {
+  const inp = e.target;
+  if (!(inp instanceof HTMLInputElement) || inp.type !== 'file') return;
+  const label = inp.closest('.file');
+  if (!label) return;
+  const name = label.querySelector('.name');
+  if (!name) return;
+  if (!name.dataset.def) name.dataset.def = name.textContent;
+  const f = inp.files && inp.files[0];
+  name.textContent = f ? f.name : name.dataset.def;
+  name.classList.toggle('has', !!f);
+});

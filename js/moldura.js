@@ -618,7 +618,7 @@
     try {
       state.photo = await U.loadImage(f);
       U.$('#panel-foto').classList.remove('hidden');
-      U.$('#btn-foto').textContent = '📷 Trocar foto';
+      U.$('#btn-foto-txt').textContent = 'Trocar foto';
       canvas.classList.add('draggable');
       resetPhoto();
     } catch (err) { U.toast(err.message); }
@@ -680,7 +680,7 @@
 
   const fileName = () => `moldura-${U.slug(state.cfg.nome)}-${state.formato}.png`;
   U.$('#btn-download').addEventListener('click', () => {
-    if (!state.photo) U.toast('Dica: escolha sua foto antes de baixar 😉');
+    if (!state.photo) U.toast('Dica: escolha sua foto antes de baixar');
     U.download(canvas, fileName());
   });
   U.$('#btn-share').addEventListener('click', () => {

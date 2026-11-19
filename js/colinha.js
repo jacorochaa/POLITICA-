@@ -4,7 +4,8 @@
   const canvas = U.$('#preview');
   const ctx = canvas.getContext('2d');
   const formC = U.$('#form-candidato');
-  const BRAND = '#4f46e5';
+  const BRAND = '#18181b';
+  const ACCENT = '#15803d';
 
   const state = {
     modo: 'candidato',          // 'candidato' | 'eleitor'
@@ -364,7 +365,7 @@
     const headH = tall ? 420 : 260;
     const g = c.createLinearGradient(0, 0, W, headH);
     g.addColorStop(0, BRAND);
-    g.addColorStop(1, '#7c3aed');
+    g.addColorStop(1, '#27272a');
     c.fillStyle = g;
     c.fillRect(0, 0, W, headH);
 
@@ -393,7 +394,7 @@
       c.fill();
 
       // número da etapa
-      c.fillStyle = BRAND;
+      c.fillStyle = ACCENT;
       c.beginPath();
       c.arc(x + 58, y + h / 2, 30, 0, Math.PI * 2);
       c.fill();
@@ -547,7 +548,7 @@
     e.votos[key] = { num: d.num, nome: d.nome };
     salvarEleitor();
     setModo('eleitor');
-    U.toast(`${d.nome || 'Candidato'} adicionado(a) à sua colinha ✔`);
+    U.toast(`${d.nome || 'Candidato'} adicionado(a) à sua colinha`);
   }
 
   /* =====================================================
@@ -608,8 +609,8 @@
   U.$('#btn-share').addEventListener('click', () => {
     const d = dadosCandidato();
     const txt = state.modo === 'candidato'
-      ? `Na urna, ${d.nome}: ${d.num} ✅ ${linkCandidato()}`
-      : 'Minha colinha para o dia da eleição ✅';
+      ? `Na urna, ${d.nome}: ${d.num}. ${linkCandidato()}`
+      : 'Minha colinha para o dia da eleição';
     U.share(canvas, nomeArquivo(), txt);
   });
   U.$('#btn-print').addEventListener('click', () => U.printCanvas(canvas, state.formato === 'folha' ? 'sheet' : 'small'));
