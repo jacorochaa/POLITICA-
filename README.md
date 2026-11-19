@@ -40,7 +40,8 @@ Também funciona em Netlify, Vercel ou qualquer hospedagem de arquivos estático
 
 ## Rodar no computador
 
-Precisa do [Python](https://www.python.org/downloads/) instalado (no Windows, marque *Add python.exe to PATH*).
+Precisa do [Python](https://www.python.org/downloads/) (no Windows, marque *Add python.exe to PATH*) **ou** do
+[Node.js](https://nodejs.org/) instalado. Os atalhos usam o Python e, se ele não existir, o Node.
 
 - **Windows:** dois cliques em `iniciar-windows.bat`
 - **Mac:** dois cliques em `iniciar-mac-linux.command` (na 1ª vez: botão direito → Abrir)
@@ -50,7 +51,8 @@ O navegador abre em http://localhost:8000. Não abra o `index.html` direto com d
 bloqueia o download das artes e a busca do TSE fora de um servidor. Ou, no terminal, dentro da pasta:
 
 ```bash
-python3 -m http.server 8000
+python3 -m http.server 8000      # com Python
+node scripts/servidor.mjs 8000   # com Node
 ```
 
 e abra http://localhost:8000.
