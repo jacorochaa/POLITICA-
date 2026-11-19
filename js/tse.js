@@ -130,7 +130,9 @@ const TSE = (() => {
       if (!uf || !ue) { status(uf ? 'Escolha o município.' : 'Escolha o estado e o município.'); return; }
       status('Carregando candidaturas…');
       try {
-        lista = await getJSON(`${BASE}/${meta.ano}/${uf}/${ue}.json`);
+        lista = meta.layout === 'uf'
+          ? ((await getJSON(`${BASE}/${meta.ano}/${uf}.json`))[ue] || [])
+          : await getJSON(`${BASE}/${meta.ano}/${uf}/${ue}.json`);
         ctx = { uf, cidade: $mun.selectedOptions[0].textContent };
         buscar();
       } catch (e) { status('Não foi possível carregar os dados deste município.'); }

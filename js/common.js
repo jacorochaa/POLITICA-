@@ -161,8 +161,24 @@ const U = {
   canvasBlob(canvas) {
     return new Promise(res => canvas.toBlob(res, 'image/png'));
   },
+  /** download do Claude (artefato no claude.ai); null fora dele */
+  claudeDownloads() {
+    if (!window.claude || typeof window.claude.use !== 'function') return Promise.resolve(null);
+    if (!U._dl) U._dl = Promise.resolve(window.claude.use('downloads')).catch(() => null);
+    return U._dl;
+  },
   async download(canvas, filename) {
     const blob = await U.canvasBlob(canvas);
+    const dl = await U.claudeDownloads();
+    if (dl) {
+      try {
+        await dl.save({ filename, data: blob });
+        U.toast('Imagem salva');
+      } catch (e) {
+        if (!e || e.code !== 'declined') U.toast('Não foi possível salvar a imagem neste aparelho.');
+      }
+      return;
+    }
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = filename;

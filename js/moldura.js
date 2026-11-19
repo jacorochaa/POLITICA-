@@ -722,7 +722,7 @@
     e.preventDefault();
     location.href = location.pathname;
   });
-  window.addEventListener('hashchange', () => location.reload());
+  if (!window.APP_MODE) window.addEventListener('hashchange', () => location.reload());
 
   /* ---------- dados do TSE ---------- */
   function aplicarTSE(c) {
@@ -745,7 +745,9 @@
   /* ---------- início ---------- */
   Partidos.fillSelect(U.$('#m-pid'));
   TSE.mount(U.$('#tse-box'), aplicarTSE);
-  const pidHash = U.hashParam('p');
+  const AP = window.APP_PARAMS || {};
+  window.APP_PARAMS = {};
+  const pidHash = AP.p || U.hashParam('p');
   if (pidHash && Partidos.get(pidHash)) {
     U.$('#m-pid').value = pidHash;
     setTemplate('partido');

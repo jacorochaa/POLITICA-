@@ -73,51 +73,6 @@
 
   <script src="js/common.js"></script>
   <script src="js/partidos.js"></script>
-  <script>
-    (() => {
-      const grid = U.$('#grid');
-      const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-      const cards = PARTIDOS.map(p => {
-        const el = document.createElement('article');
-        el.className = 'party';
-        el.dataset.q = norm(`${p.sigla} ${p.nome} ${p.num}`);
-        el.innerHTML = `
-          <div class="logo"><canvas width="480" height="240"></canvas></div>
-          <div class="body">
-            <div class="head">
-              <div class="num" style="background:${p.cor};color:${U.textOn(p.cor)}">${p.num}</div>
-              <div><div class="sigla">${p.sigla}</div><div class="nome">${p.nome}</div></div>
-            </div>
-            <div class="meta"><span class="c" style="background:${p.cor}"></span><span class="c" style="background:${p.cor2}"></span>
-              <span>${p.logo ? 'Logo oficial' : 'Selo gerado'}</span></div>
-            <div class="acts">
-              <a class="btn" href="moldura.html#p=${p.id}">${U.icon('moldura', 'i i-sm')}Moldura</a>
-              <a class="btn ghost" href="colinha.html#p=${p.id}">${U.icon('colinha', 'i i-sm')}Colinha</a>
-            </div>
-          </div>`;
-        grid.appendChild(el);
-        const cv = U.$('canvas', el);
-        const draw = img => {
-          const c = cv.getContext('2d');
-          c.clearRect(0, 0, cv.width, cv.height);
-          if (img) Partidos.draw(c, img, p, 60, 40, 360, 160);
-          else Partidos.draw(c, null, p, 170, 30, 140, 180);
-        };
-        Partidos.loadLogo(p.id).then(draw);
-        U.fontsReady().then(() => Partidos.loadLogo(p.id).then(draw));
-        return el;
-      });
-
-      const busca = U.$('#busca');
-      const filtrar = () => {
-        const q = norm(busca.value).trim();
-        let n = 0;
-        cards.forEach(el => { const ok = !q || el.dataset.q.includes(q); el.classList.toggle('hidden', !ok); n += ok; });
-        U.$('#contagem').textContent = `${n} partido${n === 1 ? '' : 's'}`;
-      };
-      busca.addEventListener('input', filtrar);
-      filtrar();
-    })();
-  </script>
+  <script src="js/galeria.js"></script>
 </body>
 </html>
