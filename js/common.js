@@ -312,6 +312,31 @@ new MutationObserver(muts => muts.forEach(m => m.addedNodes.forEach(n => {
   if (n.matches('input.num')) U.digitInput(n); else U.enhanceDigits(n);
 }))).observe(document.documentElement, { childList: true, subtree: true });
 
+/* ---------- bandeiras dos estados (img/estados/<UF>.png) ---------- */
+U._bandeiras = {};
+/** Promise<Image|null> */
+U.bandeira = uf => {
+  if (!uf || !/^[A-Z]{2}$/.test(uf) || uf === 'BR') return Promise.resolve(null);
+  if (!U._bandeiras[uf]) {
+    U._bandeiras[uf] = new Promise(res => {
+      const img = new Image();
+      img.onload = () => res(img);
+      img.onerror = () => res(null);
+      img.src = `img/estados/${uf}.png`;
+    });
+  }
+  return U._bandeiras[uf];
+};
+/** desenha a bandeira com altura h e borda fina; devolve a largura */
+U.desenhaBandeira = (c, img, x, y, h) => {
+  if (!img) return 0;
+  const w = h * img.width / img.height;
+  c.drawImage(img, x, y, w, h);
+  c.lineWidth = Math.max(1, h / 30); c.strokeStyle = 'rgba(0,0,0,.18)';
+  c.strokeRect(x, y, w, h);
+  return w;
+};
+
 /** número em caixinhas, como HTML (para listas e cartões) */
 U.digitsHTML = (num, cls = '') => `<span class="digits ${cls}" aria-label="${num}">${String(num).split('').map(c => `<span class="d">${c}</span>`).join('')}</span>`;
 

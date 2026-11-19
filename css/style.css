@@ -595,3 +595,6 @@ footer.site { color: var(--muted); font-size: 13px; padding: 14px 16px; text-ali
 }
 .btn:disabled { opacity: .4; cursor: not-allowed; }
 .btn:disabled:hover { opacity: .4; }
+
+/* bandeira do estado dentro do campo "Estado" */
+select.com-bandeira { padding-left: 44px; background-repeat: no-repeat, no-repeat; background-position: 12px center, right 12px center; background-size: 22px auto, 16px; }

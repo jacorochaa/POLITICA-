@@ -91,6 +91,14 @@ const TSE = (() => {
     const $munBox = U.$('#tse-mun-box', el), $q = U.$('#tse-q', el), $res = U.$('#tse-results', el);
     let meta = null, lista = [], ctx = {};
 
+    // bandeira do estado escolhido dentro do campo (mantém a setinha do select)
+    const seta = getComputedStyle($uf).backgroundImage;
+    function mostrarBandeira() {
+      const uf = $uf.value;
+      $uf.classList.toggle('com-bandeira', !!uf);
+      $uf.style.backgroundImage = uf ? `url("img/estados/${uf}.png"), ${seta}` : '';
+    }
+
     const api = {
       get meta() { return meta; },
       get ctx() { return ctx; },
@@ -118,6 +126,7 @@ const TSE = (() => {
       const ufs = Object.keys(meta.indice).filter(u => u !== 'BR').sort();
       $uf.innerHTML = '<option value="">Selecione</option>' + ufs.map(u => `<option value="${u}">${UFS[u] || u}</option>`).join('');
       if (pref.uf && ufs.includes(pref.uf)) $uf.value = pref.uf;
+      mostrarBandeira();
       await carregarUF();
     }
 
@@ -185,7 +194,7 @@ const TSE = (() => {
       onSelect(c);
     });
     $e.addEventListener('change', () => { salvarPref(); carregarEleicao().catch(() => status('Erro ao carregar a eleição.')); });
-    $uf.addEventListener('change', () => { salvarPref(); carregarUF(); });
+    $uf.addEventListener('change', () => { salvarPref(); mostrarBandeira(); carregarUF(); });
     $mun.addEventListener('change', () => { salvarPref(); carregarMun(); });
     let t = 0;
     $q.addEventListener('input', () => { clearTimeout(t); t = setTimeout(buscar, 120); });

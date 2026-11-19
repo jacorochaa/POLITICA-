@@ -86,8 +86,13 @@ const Video = (() => {
     // cabeçalho
     c.textAlign = 'center'; c.textBaseline = 'alphabetic';
     espacado(c, (o.subtitulo || '').toUpperCase(), W / 2, 150, 26, 600, T.grey, 6);
-    c.fillStyle = T.ink; fit(c, o.titulo || 'Minha colinha', W - 160, 60, 800, 30);
-    c.fillText(o.titulo || 'Minha colinha', W / 2, 226);
+    const titulo = o.titulo || 'Minha colinha';
+    const fl = o.bandeira, fh = 54;
+    const fw = fl ? fh * fl.width / fl.height : 0, gap = fl ? 22 : 0;
+    c.fillStyle = T.ink; fit(c, titulo, W - 160 - fw - gap, 60, 800, 30);
+    const tw = c.measureText(titulo).width, x0 = W / 2 - (fw + gap + tw) / 2;
+    if (fl) U.desenhaBandeira(c, fl, x0, 226 - fh * 0.82, fh);
+    c.textAlign = 'left'; c.fillText(titulo, x0 + fw + gap, 226); c.textAlign = 'center';
 
     // visor
     const vx = 60, vy = 290, vw = W - 120, vh = 1150;

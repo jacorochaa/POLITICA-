@@ -38,6 +38,7 @@
     logoCustom: null,
     logoPartido: null,
     imgs: {},                   // fotos do TSE já carregadas, por sq
+    flags: {},                  // bandeiras dos estados já carregadas, por UF
     logos: {},                  // logos de partido já carregadas, por id
     tse: null,                  // api do painel do TSE
     eleitor: U.store.get('colinha-eleitor2', {
@@ -195,6 +196,30 @@
     U.setSpacing(c, 0);
   }
 
+  /** bandeira do estado (já carregada) ou null; pede o carregamento na primeira vez */
+  function bandeira(uf) {
+    if (!uf || uf === 'BR') return null;
+    if (state.flags[uf] === undefined) {
+      state.flags[uf] = null;
+      U.bandeira(uf).then(img => { state.flags[uf] = img; if (img) render(); });
+    }
+    return state.flags[uf];
+  }
+
+  /** texto centralizado em cx com a bandeira à esquerda (fonte e cor já definidas) */
+  function comBandeira(c, text, cx, y, img, fh, sp = 0) {
+    U.setSpacing(c, sp);
+    const tw = c.measureText(text).width;
+    const fw = img ? fh * img.width / img.height : 0;
+    const gap = img ? fh * 0.45 : 0;
+    const x0 = cx - (fw + gap + tw) / 2;
+    if (img) U.desenhaBandeira(c, img, x0, y - fh * 0.86, fh);
+    c.textAlign = 'left';
+    c.fillText(text, x0 + fw + gap, y);
+    c.textAlign = 'center';
+    U.setSpacing(c, 0);
+  }
+
   /* =====================================================
      Colinha do candidato (imagem / stories)
      ===================================================== */
@@ -211,15 +236,18 @@
     // cabeçalho
     c.textAlign = 'center'; c.textBaseline = 'alphabetic';
     const cab = [`ELEIÇÕES ${d.ano || ''}`, d.cid ? d.cid.toUpperCase() : ''].filter(Boolean).join(' · ');
+    const flag = bandeira(d.uf || state.uf);
     if (T.partido) {
       // faixa larga na cor do partido/campanha
       const fh = tall ? 230 : 150;
       c.fillStyle = cor; c.fillRect(0, 0, W, fh);
-      espacado(c, cab, cx, fh / 2 + 10, 26, 700, U.textOn(cor), 4);
+      c.fillStyle = U.textOn(cor); c.font = fnt(700, 26);
+      comBandeira(c, cab, cx, fh / 2 + 10, flag, 34, 4);
     } else {
       c.fillStyle = T.urna ? '#2b2b2b' : cor;
       c.fillRect(0, 0, W, 18);
-      espacado(c, cab, cx, tall ? 150 : 104, 24, 600, GREY, 4);
+      c.fillStyle = GREY; c.font = fnt(600, 24);
+      comBandeira(c, cab, cx, tall ? 150 : 104, flag, 32, 4);
     }
 
     // blocos
@@ -420,8 +448,9 @@
     c.textAlign = 'center'; c.textBaseline = 'alphabetic';
     espacado(c, `${T.urna ? 'URNA' : 'COLINHA'} · ELEIÇÕES ${e.ano || ''}`, cx, 82, 22, 600, GREY, 5);
     c.fillStyle = INK;
-    fit(c, e.lugar || 'Minha colinha', W - 200, 46, 800, 26);
-    c.fillText(e.lugar || 'Minha colinha', cx, 142);
+    const flag = e.lugar ? bandeira(e.uf) : null;
+    fit(c, e.lugar || 'Minha colinha', W - 200 - (flag ? 90 : 0), 46, 800, 26);
+    comBandeira(c, e.lugar || 'Minha colinha', cx, 142, flag, 44);
 
     if (T.urna) {
       // visor da urna atrás da lista
@@ -629,6 +658,7 @@
     e.df = api.ctx.uf === 'DF';
     e.sen2 = m.tipo === 'geral' && (m.ano - 2018) % 8 === 0;
     e.lugar = api.lugar();
+    e.uf = api.ctx.uf || '';
     if (muda) e.votos = {};
     if (api.pronto()) linhasEleitor().forEach(r => { const v = e.votos[r.key]; if (v && v.num) resolverVoto(r, v.num); });
     salvarEleitor();
@@ -747,6 +777,7 @@
       }).filter(Boolean);
       Video.gravar({
         ...comum, votos, titulo: e.lugar || 'Minha colinha', subtitulo: `Eleições ${e.ano || ''}`, arquivo: 'minha-colinha-video',
+        bandeira: e.lugar ? bandeira(e.uf) : null,
         final: (c, W, H) => {
           usarTema(state.tema);
           const off = document.createElement('canvas');
@@ -766,6 +797,7 @@
         ? [{ cargo: cargo.nome, digitos: cargo.digitos, num: d.num, nome: d.nome, partido: d.partido, foto: state.foto, logo: logo ? logo.img : null, p: logo ? p : null }] : [];
       Video.gravar({
         ...comum, votos, titulo: d.nome || 'Colinha', subtitulo: [`Eleições ${d.ano || ''}`, d.cid].filter(Boolean).join(' · '),
+        bandeira: bandeira(d.uf || state.uf),
         arquivo: `colinha-${U.slug(d.nome)}-${d.num}-video`,
         final: (c, W, H) => { usarTema(state.tema); drawCandidato(c, W, H, d); },
       });
