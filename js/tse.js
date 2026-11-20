@@ -90,6 +90,16 @@ const TSE = (() => {
     const $e = U.$('#tse-eleicao', el), $uf = U.$('#tse-uf', el), $mun = U.$('#tse-mun', el);
     const $munBox = U.$('#tse-mun-box', el), $q = U.$('#tse-q', el), $res = U.$('#tse-results', el);
     let meta = null, lista = [], ctx = {};
+    let vices = {};   // "cargo:número" -> [[rótulo, nome, sq], ...] do lugar escolhido
+
+    /** junta vice/suplentes ao candidato (c.vices = [{ rotulo, nome, sq }]) */
+    function comVices(c) {
+      if (!c) return c;
+      const v = vices[`${c.cargo}:${c.num}`] || [];
+      c.vices = v.map(([rotulo, nome, sq]) => ({ rotulo, nome, sq }));
+      return c;
+    }
+    const lerVices = uf => getJSON(`data/vices/${meta.ano}/${uf}.json`).catch(() => ({}));
 
     // bandeira do estado escolhido dentro do campo (mantém a setinha do select)
     const seta = getComputedStyle($uf).backgroundImage;
@@ -108,7 +118,7 @@ const TSE = (() => {
         if (!meta || !lista.length || !num) return null;
         const iC = meta.campos.indexOf('cargo'), iN = meta.campos.indexOf('num');
         const r = lista.find(x => meta.cargos[x[iC]] === cargo && String(x[iN]) === String(num));
-        return r ? montar(r, meta, ctx) : null;
+        return r ? comVices(montar(r, meta, ctx)) : null;
       },
       /** "Distrito Federal · DF" ou "Campinas · SP" */
       lugar() {
@@ -132,6 +142,7 @@ const TSE = (() => {
 
     async function carregarUF() {
       lista = [];
+      vices = {};
       ctx = { uf: $uf.value };
       const uf = $uf.value;
       if (meta.tipo === 'municipal') {
@@ -144,8 +155,9 @@ const TSE = (() => {
         $munBox.classList.add('hidden');
         if (!uf) { status(''); onData(api); return; }
         try {
-          const [a, br] = await Promise.all([getJSON(`${BASE}/${meta.ano}/${uf}.json`), getJSON(`${BASE}/${meta.ano}/BR.json`).catch(() => [])]);
+          const [a, br, va, vbr] = await Promise.all([getJSON(`${BASE}/${meta.ano}/${uf}.json`), getJSON(`${BASE}/${meta.ano}/BR.json`).catch(() => []), lerVices(uf), lerVices('BR')]);
           lista = br.concat(a);
+          vices = { ...vbr, ...va };
           pronto();
         } catch (e) { status('Não foi possível carregar os dados deste estado.'); }
       }
@@ -153,12 +165,14 @@ const TSE = (() => {
 
     async function carregarMun() {
       lista = [];
+      vices = {};
       const uf = $uf.value, ue = $mun.value;
       if (!uf || !ue) { status(''); onData(api); return; }
       try {
         lista = meta.layout === 'uf'
           ? ((await getJSON(`${BASE}/${meta.ano}/${uf}.json`))[ue] || [])
           : await getJSON(`${BASE}/${meta.ano}/${uf}/${ue}.json`);
+        vices = (await lerVices(uf))[ue] || {};
         ctx = { uf, ue, cidade: $mun.selectedOptions[0].textContent };
         pronto();
       } catch (e) { status('Não foi possível carregar os dados deste município.'); }
@@ -188,7 +202,7 @@ const TSE = (() => {
     $res.addEventListener('click', e => {
       const b = e.target.closest('.tse-item');
       if (!b) return;
-      const c = montar(lista[+b.dataset.i], meta, ctx);
+      const c = comVices(montar(lista[+b.dataset.i], meta, ctx));
       $q.value = '';
       status('');
       onSelect(c);

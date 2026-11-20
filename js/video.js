@@ -167,8 +167,13 @@ const Video = (() => {
         c.textAlign = 'center'; c.textBaseline = 'alphabetic';
         c.fillStyle = T.ink; fit(c, (v.nome || '').toUpperCase(), vw - 120, 58, 800, 28);
         c.fillText((v.nome || '').toUpperCase(), W / 2, by + bh + 88 + (1 - rev) * 20);
+        // vice / suplentes
+        if (v.vice) {
+          c.fillStyle = T.grey; fit(c, v.vice, vw - 120, 28, 600, 16);
+          c.fillText(v.vice, W / 2, by + bh + 136);
+        }
         // logo e sigla lado a lado
-        const temLogo = !!(v.p || v.logo), s2 = 96, ly = by + bh + 122;
+        const temLogo = !!(v.p || v.logo), s2 = 96, ly = by + bh + (v.vice ? 170 : 122);
         c.font = fnt(700, 32);
         const sw = v.partido ? c.measureText(v.partido).width : 0;
         const larg = (temLogo ? s2 : 0) + (temLogo && sw ? 22 : 0) + sw;

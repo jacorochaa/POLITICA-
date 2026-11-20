@@ -79,6 +79,7 @@
       cor: U.$('#c-cor').value || '#1d4ed8',
       legal: v('c-legal'),
       sq: state.sq || undefined,
+      vices: state.vices && state.vices.length ? state.vices : undefined,
       uf: state.uf || undefined,
       ue: state.ue || undefined,
     };
@@ -130,7 +131,7 @@
   }
 
   function carregarFotoCandidato(c) {
-    state.sq = c.sq; state.uf = c.uf; state.ue = c.ue;
+    state.sq = c.sq; state.uf = c.uf; state.ue = c.ue; state.vices = (c.vices || []).map(x => [x.rotulo, x.nome]);
     if (state.fotoUser) return;
     state.foto = null;
     Fotos.get(c.ano, c.uf, c.sq, c.ue).then(img => {
@@ -264,7 +265,8 @@
     const hFoto = ph ? ph + 56 : 0;
     const hCargo = 54;
     const hBoxes = bh + 44;
-    const hNome = 84;
+    const vicesTxt = textoVices(d.vices);
+    const hNome = vicesTxt ? 122 : 84;
     const hConf = 96;
     const hPart = logo || d.partido ? (logoS ? logoS + 50 : 40) : 0;
     const hSlogan = d.slogan ? 80 : 0;
@@ -283,7 +285,7 @@
     if (ph) { retrato(c, state.foto, cx - pw / 2, y, pw, ph, 28); y += hFoto; }
 
     c.textAlign = 'center'; c.textBaseline = 'alphabetic';
-    espacado(c, cargo.nome.toUpperCase(), cx, y + 34, 32, 700, corTxt, 5);
+    espacado(c, NA_URNA[d.cargo] || cargo.nome.toUpperCase(), cx, y + 34, 32, 700, corTxt, 4);
     y += hCargo;
 
     caixinhas(c, d.num, n, cx, y, bw, bh, gap);
@@ -292,6 +294,11 @@
     c.fillStyle = INK; c.textAlign = 'center';
     fit(c, nome, W - 160, 64, 800, 30);
     c.fillText(nome, cx, y + 56);
+    if (vicesTxt) {
+      c.fillStyle = GREY;
+      fit(c, vicesTxt, W - 180, 26, 600, 14);
+      c.fillText(vicesTxt, cx, y + 98);
+    }
     y += hNome;
 
     // "digite e aperte CONFIRMA"
@@ -398,7 +405,7 @@
     const cx = (l + r) / 2, inner = r - l;
 
     c.textAlign = 'center'; c.textBaseline = 'alphabetic';
-    espacado(c, cargo.nome.toUpperCase(), cx, y + 120, 30, 700, GREY, 4);
+    espacado(c, NA_URNA[d.cargo] || cargo.nome.toUpperCase(), cx, y + 120, 30, 700, GREY, 3);
     const n = cargo.digitos, gap = 14;
     const bw = Math.min(104, (inner - gap * (n - 1)) / n), bh = bw * 1.18;
     caixinhas(c, d.num, n, cx, y + 150, bw, bh, gap);
@@ -434,8 +441,45 @@
     return L;
   }
 
-  const E = { head: 210, row: 180, foot: 120 };
-  function alturaEleitor() { return E.head + linhasEleitor().length * E.row + E.foot; }
+  const E = { head: 268, row: 180, foot: 120, vice: 34 };
+  /** "VICE-GOVERNADOR: NOME" / "1º SUPLENTE: A · 2º SUPLENTE: B" */
+  const textoVices = vs => (vs || []).map(([r, n]) => `${r.toUpperCase()}: ${n}`).join('   ·   ');
+  const alturaLinha = r => { const v = state.eleitor.votos[r.key] || {}; return E.row + (v.num && v.vices && v.vices.length ? E.vice : 0); };
+  function alturaEleitor() { return E.head + linhasEleitor().reduce((s, r) => s + alturaLinha(r), 0) + E.foot; }
+
+  /** nome do cargo como aparece no visor da urna */
+  const NA_URNA = {
+    vereador: 'VEREADOR', prefeito: 'PREFEITO', dep_federal: 'DEPUTADO FEDERAL', dep_estadual: 'DEPUTADO ESTADUAL',
+    dep_distrital: 'DEPUTADO DISTRITAL', senador: 'SENADOR', governador: 'GOVERNADOR', presidente: 'PRESIDENTE',
+  };
+  function rotulo(r) {
+    const vaga = r.key === 'senador2' ? ' (2ª VAGA)' : (r.key === 'senador' && state.eleitor.sen2 ? ' (1ª VAGA)' : '');
+    return (NA_URNA[r.cargo] || r.nome.toUpperCase()) + vaga;
+  }
+
+  /** marca do site (canto do cabeçalho) */
+  function marca(c, x, y, s = 1) {
+    const q = 50 * s;
+    U.roundRect(c, x, y, q, q, 12 * s);
+    c.fillStyle = INK; c.fill();
+    c.strokeStyle = T.bg; c.lineWidth = 3.2 * s; c.lineCap = 'round'; c.lineJoin = 'round';
+    c.strokeRect(x + 11 * s, y + 24 * s, 28 * s, 15 * s);
+    c.beginPath(); c.moveTo(x + 18 * s, y + 16 * s); c.lineTo(x + 23 * s, y + 21 * s); c.lineTo(x + 32 * s, y + 11 * s); c.stroke();
+    c.lineCap = 'butt'; c.lineJoin = 'miter';
+    c.fillStyle = INK; c.font = fnt(800, 30 * s); c.textAlign = 'left'; c.textBaseline = 'middle';
+    c.fillText('colinha', x + q + 14 * s, y + q / 2 + 1);
+    c.textBaseline = 'alphabetic';
+  }
+
+  /** selo "ELEIÇÕES / ano" (canto direito do cabeçalho) */
+  function seloEleicao(c, xDir, y, ano) {
+    c.textAlign = 'right'; c.textBaseline = 'alphabetic';
+    c.fillStyle = INK; c.font = fnt(800, 21);
+    U.setSpacing(c, 3); c.fillText('ELEIÇÕES', xDir + 3, y); U.setSpacing(c, 0);
+    c.fillStyle = T.escuro ? '#3fb27a' : '#1f8f4e'; c.font = fnt(900, 58);
+    c.fillText(String(ano || ''), xDir, y + 54);
+    c.textAlign = 'center';
+  }
 
   function drawEleitor(c, W, H) {
     const e = state.eleitor;
@@ -444,13 +488,21 @@
     c.fillRect(0, 0, W, H);
     const L = 72, R = W - 72, cx = W / 2;
 
-    // cabeçalho: lugar e eleição
-    c.textAlign = 'center'; c.textBaseline = 'alphabetic';
-    espacado(c, `${T.urna ? 'URNA' : 'COLINHA'} · ELEIÇÕES ${e.ano || ''}`, cx, 82, 22, 600, GREY, 5);
-    c.fillStyle = INK;
+    // cabeçalho: marca à esquerda, bandeira e lugar no centro, eleição à direita
+    marca(c, L, 64);
+    seloEleicao(c, R, 82, e.ano);
     const flag = e.lugar ? bandeira(e.uf) : null;
-    fit(c, e.lugar || 'Minha colinha', W - 200 - (flag ? 90 : 0), 46, 800, 26);
-    comBandeira(c, e.lugar || 'Minha colinha', cx, 142, flag, 44);
+    if (flag) {
+      const fh = 54, fw = fh * flag.width / flag.height;
+      U.desenhaBandeira(c, flag, cx - fw / 2, 44, fh);
+    }
+    c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+    c.fillStyle = INK;
+    const lugar = e.lugar || 'Minha colinha';
+    fit(c, lugar, W - 2 * 270, 44, 800, 24);
+    c.fillText(lugar, cx, flag ? 150 : 110);
+    c.fillStyle = LINE;
+    if (!T.urna) c.fillRect(L, E.head - 46, R - L, 2);
 
     if (T.urna) {
       // visor da urna atrás da lista
@@ -475,19 +527,24 @@
       if (v.num && (p || v.partido)) seloPartido(c, p ? state.logos[p.id] : null, p, v.partido, R - 96, top + 14, 96);
       // cargo, número, nome
       c.textAlign = 'center'; c.textBaseline = 'alphabetic';
-      espacado(c, r.nome.toUpperCase(), cx, top + 22, 22, 600, T.partido && v.num && p ? corNoFundo(p.cor) : GREY, 4);
+      espacado(c, rotulo(r), cx, top + 22, 20, 700, T.partido && v.num && p ? corNoFundo(p.cor) : GREY, 2.5);
       const n = r.digitos, gap = 9, bw = 58, bh = 68;
       caixinhas(c, v.num, n, cx, top + 38, bw, bh, gap);
       if (v.nome) {
         c.fillStyle = INK;
         fit(c, v.nome.toUpperCase(), R - L - 2 * 150, 30, 700, 16);
         c.fillText(v.nome.toUpperCase(), cx, top + 142);
+        if (v.vices && v.vices.length) {
+          c.fillStyle = GREY;
+          fit(c, textoVices(v.vices), R - L - 2 * 140, 18, 600, 12);
+          c.fillText(textoVices(v.vices), cx, top + 176);
+        }
       }
       if (i < rows.length - 1) {
         c.fillStyle = LINE;
-        c.fillRect(L, y + E.row - 1, R - L, 2);
+        c.fillRect(L, y + alturaLinha(r) - 1, R - L, 2);
       }
-      y += E.row;
+      y += alturaLinha(r);
     });
 
     if (T.urna) {
@@ -570,7 +627,7 @@
     const v = { num };
     if (num.length === r.digitos && state.tse && state.tse.pronto()) {
       const c = state.tse.find(r.cargo, num);
-      if (c) Object.assign(v, { nome: c.urna, partido: c.partido, pid: c.pid, sq: c.sq, uf: c.uf, ue: c.ue, ano: c.ano });
+      if (c) Object.assign(v, { nome: c.urna, partido: c.partido, pid: c.pid, sq: c.sq, uf: c.uf, ue: c.ue, ano: c.ano, vices: (c.vices || []).map(x => [x.rotulo, x.nome]) });
       else v.naoAchou = true;
     } else if (!state.tse || !state.tse.pronto()) {
       const ant = e.votos[r.key];
@@ -582,10 +639,12 @@
     return v;
   }
 
+  const viceHTML = v => (v.vices && v.vices.length ? `<span class="vr-vice">${v.vices.map(([r, n]) => `${esc(r)}: ${esc(n)}`).join(' · ')}</span>` : '');
+
   function linhaHTML(r, v) {
     const foto = v.sq && state.imgs[v.sq] ? state.imgs[v.sq].src : '';
     let info;
-    if (v.nome) info = `<b>${esc(v.nome)}</b><small>${esc(v.partido || '')}</small>`;
+    if (v.nome) info = `<b>${esc(v.nome)}</b><small>${esc(v.partido || '')}</small>${viceHTML(v)}`;
     else if (v.naoAchou) info = '<small class="warn">Número não encontrado</small>';
     else info = `<small>${r.digitos} dígitos</small>`;
     return `
@@ -629,7 +688,7 @@
     else if (!img || img.src !== src) foto.innerHTML = `<img src="${src}" alt="">`;
     const info = U.$('.vr-info', div);
     const achouAgora = v.nome && !U.$('b', info);
-    if (v.nome) info.innerHTML = `<b>${esc(v.nome)}</b><small>${esc(v.partido || '')}</small>`;
+    if (v.nome) info.innerHTML = `<b>${esc(v.nome)}</b><small>${esc(v.partido || '')}</small>${viceHTML(v)}`;
     else if (v.naoAchou) info.innerHTML = '<small class="warn">Número não encontrado</small>';
     else info.innerHTML = `<small>${r.digitos} dígitos</small>`;
     // destaque rápido quando o candidato aparece, como o visor da urna
@@ -678,7 +737,8 @@
     if (key === 'dep_distrital') e.df = true;
     if (key === 'dep_estadual') e.df = false;
     if (key === 'senador' && e.sen2 && e.votos.senador && e.votos.senador.num && e.votos.senador.num !== d.num) key = 'senador2';
-    const v = { num: d.num, nome: (d.urna || d.nome || '').toUpperCase(), partido: d.partido, pid: d.pid, sq: d.sq, uf: d.uf, ue: d.ue, ano: d.ano };
+    const vicesD = Array.isArray(d.vices) ? d.vices.map(x => (Array.isArray(x) ? x : [x.rotulo, x.nome])) : [];
+    const v = { num: d.num, nome: (d.urna || d.nome || '').toUpperCase(), partido: d.partido, pid: d.pid, sq: d.sq, uf: d.uf, ue: d.ue, ano: d.ano, vices: vicesD };
     e.votos[key] = v;
     pedirFoto(v); pedirLogo(v.pid);
     salvarEleitor();
@@ -732,7 +792,7 @@
       completarPeloNumero();
     }
     if (e.target.id === 'c-ano') e.target.value = U.onlyDigits(e.target.value, 4);
-    if (e.target.id === 'c-nome') state.sq = '';
+    if (e.target.id === 'c-nome') { state.sq = ''; state.vices = []; }
     render();
   });
   U.$('#c-cargo').addEventListener('change', () => {
@@ -773,7 +833,7 @@
         const v = e.votos[r.key] || {};
         if (!v.num || v.num.length !== r.digitos) return null;
         const p = Partidos.get(v.pid);
-        return { cargo: r.nome, digitos: r.digitos, num: v.num, nome: v.nome || '', partido: v.partido || '', foto: (v.sq && state.imgs[v.sq]) || null, logo: p ? state.logos[p.id] || null : null, p };
+        return { cargo: rotulo(r), vice: textoVices(v.vices), digitos: r.digitos, num: v.num, nome: v.nome || '', partido: v.partido || '', foto: (v.sq && state.imgs[v.sq]) || null, logo: p ? state.logos[p.id] || null : null, p };
       }).filter(Boolean);
       Video.gravar({
         ...comum, votos, titulo: e.lugar || 'Minha colinha', subtitulo: `Eleições ${e.ano || ''}`, arquivo: 'minha-colinha-video',
@@ -794,7 +854,7 @@
       const p = Partidos.get(d.pid);
       const logo = logoInfo(d);
       const votos = d.num.length === cargo.digitos
-        ? [{ cargo: cargo.nome, digitos: cargo.digitos, num: d.num, nome: d.nome, partido: d.partido, foto: state.foto, logo: logo ? logo.img : null, p: logo ? p : null }] : [];
+        ? [{ cargo: NA_URNA[d.cargo] || cargo.nome, vice: textoVices(d.vices), digitos: cargo.digitos, num: d.num, nome: d.nome, partido: d.partido, foto: state.foto, logo: logo ? logo.img : null, p: logo ? p : null }] : [];
       Video.gravar({
         ...comum, votos, titulo: d.nome || 'Colinha', subtitulo: [`Eleições ${d.ano || ''}`, d.cid].filter(Boolean).join(' · '),
         bandeira: bandeira(d.uf || state.uf),
